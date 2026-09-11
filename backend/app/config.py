@@ -1,10 +1,28 @@
 """
 AgriSmart AI - Configuration Settings
 Loads environment variables for local development and Render cloud deployment.
+Includes built-in zero-dependency .env file loader.
 """
 
 import os
 from typing import List
+
+# Automatically load .env file if present in project root (zero external dependencies required)
+_env_file = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".env"))
+if os.path.exists(_env_file):
+    try:
+        with open(_env_file, "r", encoding="utf-8") as f:
+            for line in f:
+                line = line.strip()
+                if line and not line.startswith("#") and "=" in line:
+                    k, v = line.split("=", 1)
+                    key = k.strip()
+                    val = v.strip().strip('"').strip("'")
+                    # Set in os.environ if not already defined
+                    if key not in os.environ:
+                        os.environ[key] = val
+    except Exception:
+        pass
 
 
 class Settings:
@@ -24,6 +42,10 @@ class Settings:
         if self._raw_db_url.startswith("postgres://"):
             return self._raw_db_url.replace("postgres://", "postgresql://", 1)
         return self._raw_db_url
+
+    # Google Gemini Pro Configuration
+    GEMINI_API_KEY: str = os.getenv("GEMINI_API_KEY", "")
+    GEMINI_MODEL: str = os.getenv("GEMINI_MODEL", "gemini-1.5-pro")
 
     UPLOAD_DIR: str = os.getenv("UPLOAD_DIR", "uploads")
     CORS_ORIGINS: List[str] = ["*"]

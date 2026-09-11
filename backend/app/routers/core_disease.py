@@ -1,8 +1,9 @@
 """
-AgriSmart AI - Core Disease Detection & Cureness Router
-Provides endpoints for:
-- Model 1: Disease Classification
-- Model 2: Cureness & Treatment Plan Prescription
+AgriSmart AI - Core Disease Detection & Gemini Pro Advisory Router
+Workflow:
+1. Computer Vision model identifies disease from leaf image.
+2. Gemini Pro generates disease description and prompts: "Would you like a cure plan?"
+3. If farmer confirms (or calls /cure), Gemini Pro delivers the tailored cure plan.
 Ref: SIH 2026 Problem Statement 1, Page 1 (Section 3.1) & Page 3 (Section 4.1).
 """
 
@@ -15,28 +16,30 @@ from app.schemas.disease import (
     DiseasePredictionResponse,
     PathPredictionRequest,
     PathPredictionResponse,
-    DirectCureRequest,
-    CurenessPlan,
+    CureRequest,
+    GeminiCurePlan,
     CatalogResponse
 )
 
-router = APIRouter(prefix="/api/v1/disease", tags=["Core Task: Disease Detection & Cureness"])
+router = APIRouter(prefix="/api/v1/disease", tags=["Core Task: Disease Detection & Gemini Advisory"])
 
 
 @router.post(
     "/predict",
     response_model=DiseasePredictionResponse,
     status_code=status.HTTP_200_OK,
-    summary="Diagnose Disease & Prescribe Cureness Plan (Dual Model)",
+    summary="Diagnose Leaf Image (CV Detection + Gemini Pro Description)",
     description=(
-        "Chains Model 1 (Disease Detection) and Model 2 (Cureness Prescriber).\n"
-        "Accepts a leaf image and returns the disease class, confidence, recovery probability, "
-        "and specific multi-phase treatment plan."
+        "1. Single CV model predicts disease class and confidence from leaf image.\n"
+        "2. Gemini Pro generates an insightful disease explanation and asks if the farmer wants a cure plan.\n"
+        "3. If `include_cure=True`, Gemini Pro also includes the full recovery and treatment plan immediately."
     )
 )
 async def predict_disease_image(
-    image: UploadFile = File(..., description="Leaf or crop image to diagnose"),
+    image: UploadFile = File(..., description="Leaf image to classify"),
+    include_cure: bool = Form(False, description="Set True to generate cure plan immediately, or False to receive description and prompt first"),
     growth_stage: Optional[str] = Form("Growing", description="Current crop growth stage (e.g. Vegetative, Flowering, Fruiting)"),
+    language: Optional[str] = Form("en", description="Preferred response language (en, hi, mr, etc.)"),
     farm_id: Optional[int] = Form(None, description="Optional associated farm ID"),
     db: Session = Depends(get_db)
 ):
@@ -51,42 +54,45 @@ async def predict_disease_image(
         content = await image.read()
         if len(content) == 0:
             raise HTTPException(status_code=400, detail="Uploaded file is empty.")
-        if len(content) > 10 * 1024 * 1024:  # 10 MB limit
+        if len(content) > 10 * 1024 * 1024:
             raise HTTPException(status_code=413, detail="File too large. Maximum size is 10MB.")
 
         result = disease_service.process_uploaded_image(
             file_bytes=content,
             original_filename=image.filename or "leaf.jpg",
             farm_id=farm_id,
+            include_cure=include_cure,
             growth_stage=growth_stage,
+            language=language,
             db=db
         )
         return result
     except ValueError as e:
         raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(e))
     except Exception as e:
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Inference error: {str(e)}")
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Analysis error: {str(e)}")
 
 
 @router.post(
     "/cure",
-    response_model=CurenessPlan,
+    response_model=GeminiCurePlan,
     status_code=status.HTTP_200_OK,
-    summary="Prescribe Cureness Plan Directly (Model 2)",
-    description="Directly queries Model 2 (Cureness Prescriber) for an already diagnosed disease or specific crop condition."
+    summary="Get Step-by-Step Cure Plan (Gemini Pro)",
+    description="Invoked when the farmer responds 'Yes' to receiving a cure plan. Gemini Pro delivers dosages, recovery timelines, and organic/chemical treatments."
 )
-def get_cureness_prescription(
-    payload: DirectCureRequest
+def get_cure_plan(
+    payload: CureRequest
 ):
     try:
-        cure_plan = disease_service.get_direct_cure_plan(
+        cure_plan = disease_service.get_cure_plan(
             disease_class=payload.disease_class,
             crop=payload.crop,
-            growth_stage=payload.growth_stage
+            growth_stage=payload.growth_stage,
+            language=payload.language
         )
         return cure_plan
     except Exception as e:
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Cure model error: {str(e)}")
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Cure generation error: {str(e)}")
 
 
 @router.post(
@@ -94,7 +100,7 @@ def get_cureness_prescription(
     response_model=PathPredictionResponse,
     status_code=status.HTTP_200_OK,
     summary="Evaluation Predict Interface (By Path)",
-    description="Programmatic endpoint matching Section 4.1 submission contract. Takes an image_path on disk and returns strictly the class_label string from Model 1."
+    description="Programmatic endpoint matching Section 4.1 submission contract. Takes an image_path on disk and returns strictly the class_label string."
 )
 def predict_disease_by_path(
     payload: PathPredictionRequest,
@@ -124,8 +130,8 @@ def get_supported_classes():
 
 @router.get(
     "/history",
-    summary="Get Recent Diagnosis & Cure History",
-    description="Fetches audit history of recently diagnosed leaf images along with prescribed recovery chances and urgency levels."
+    summary="Get Recent Diagnosis History",
+    description="Fetches audit history of recently diagnosed leaf images."
 )
 def get_diagnosis_history(
     limit: int = 20,
@@ -139,11 +145,10 @@ def get_diagnosis_history(
             "confidence": r.confidence,
             "is_healthy": r.is_healthy,
             "severity": r.severity,
+            "disease_description": r.disease_description,
+            "cure_prompt": r.cure_prompt,
             "recovery_chance_pct": r.recovery_chance_pct,
             "recovery_timeline": r.recovery_timeline,
-            "urgency_level": r.urgency_level,
-            "precaution": r.precaution,
-            "prognosis_summary": r.prognosis_summary,
             "image_filename": r.image_filename,
             "created_at": r.created_at.isoformat() if r.created_at else None
         }

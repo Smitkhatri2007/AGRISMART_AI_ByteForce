@@ -1,9 +1,9 @@
 """
-AgriSmart AI - Disease & Cureness Service
+AgriSmart AI - Disease & Gemini Pro Advisory Service
 Coordinates:
-- Model 1: Disease image diagnosis
-- Model 2: Cureness treatment and recovery planning
-- Database persistence for historical tracking
+1. Computer Vision model for leaf image disease detection.
+2. Google Gemini Pro for disease explanation and cure prompt.
+3. Google Gemini Pro for on-demand cureness and recovery planning.
 """
 
 import os
@@ -11,7 +11,7 @@ import uuid
 from typing import Dict, Any, List, Optional
 from sqlalchemy.orm import Session
 from model.fake_engine import default_engine
-from model.cure_model import cure_model
+from app.services.gemini_service import gemini_advisor
 from model.class_catalog import CLASS_METADATA, ALL_CLASSES
 from app.models.diagnosis import DiseasePrediction
 from app.config import settings
@@ -27,13 +27,16 @@ class DiseaseService:
         file_bytes: bytes,
         original_filename: str,
         farm_id: Optional[int] = None,
+        include_cure: bool = False,
         growth_stage: Optional[str] = "Growing",
+        language: str = "en",
         db: Optional[Session] = None
     ) -> Dict[str, Any]:
         """
-        Executes Dual Model Pipeline:
-        1. Model 1 identifies disease from leaf image.
-        2. Model 2 prescribes cureness plan and recovery probability.
+        Flow:
+        1. Single CV model predicts disease class from leaf image.
+        2. Gemini Pro generates detailed disease description and asks if farmer wants a cure.
+        3. If include_cure=True, Gemini Pro provides the step-by-step cure plan.
         """
         ext = os.path.splitext(original_filename)[1].lower()
         if ext not in [".jpg", ".jpeg", ".png", ".webp"]:
@@ -45,36 +48,68 @@ class DiseaseService:
         with open(saved_path, "wb") as f:
             f.write(file_bytes)
 
-        # Run dual-model inference
-        result = default_engine.predict_detailed(saved_path, growth_stage=growth_stage)
+        # Step 1: CV Model detection
+        detection = default_engine.predict_detailed(saved_path)
+        predicted_class = detection["predicted_class"]
+        crop = detection["crop"]
+        is_healthy = detection["is_healthy"]
+        severity = detection["severity"]
 
-        # Persist prediction & cureness plan to database
+        # Step 2: Gemini Pro explains disease and asks if user wants cure
+        description_info = gemini_advisor.describe_disease(
+            disease_name=predicted_class,
+            crop=crop,
+            severity=severity,
+            is_healthy=is_healthy,
+            language=language
+        )
+
+        # Step 3: Optional cure generation if farmer already requested it
+        cure_plan = None
+        if include_cure and not is_healthy:
+            cure_plan = gemini_advisor.generate_cure_plan(
+                disease_name=predicted_class,
+                crop=crop,
+                growth_stage=growth_stage,
+                language=language
+            )
+
+        # Step 4: Database logging
         record_id = None
         if db is not None:
-            cure_plan = result.get("cureness_plan", {})
             db_record = DiseasePrediction(
                 farm_id=farm_id,
                 image_filename=unique_filename,
-                predicted_class=result["predicted_class"],
-                confidence=result["confidence"],
-                is_healthy=result["is_healthy"],
-                severity=result["severity"],
-                recovery_chance_pct=result.get("recovery_chance_pct"),
-                recovery_timeline=result.get("recovery_timeline"),
-                urgency_level=result.get("urgency_level"),
-                precaution=result["precaution"],
-                organic_remedy=result["organic_remedy"],
-                chemical_remedy=result["chemical_remedy"],
-                prognosis_summary=cure_plan.get("prognosis_summary")
+                predicted_class=predicted_class,
+                confidence=detection["confidence"],
+                is_healthy=is_healthy,
+                severity=severity,
+                disease_description=description_info["description"],
+                cure_prompt=description_info["follow_up_prompt"],
+                recovery_chance_pct=cure_plan.get("recovery_chance_pct") if cure_plan else None,
+                recovery_timeline=cure_plan.get("recovery_timeline") if cure_plan else None,
+                organic_treatment=cure_plan.get("organic_treatment") if cure_plan else None,
+                chemical_treatment=cure_plan.get("chemical_treatment") if cure_plan else None
             )
             db.add(db_record)
             db.commit()
             db.refresh(db_record)
             record_id = db_record.id
 
-        result["image_filename"] = unique_filename
-        result["saved_record_id"] = record_id
-        return result
+        return {
+            "predicted_class": predicted_class,
+            "confidence": detection["confidence"],
+            "is_healthy": is_healthy,
+            "crop": crop,
+            "disease_name": detection["disease_name"],
+            "severity": severity,
+            "top_k": detection["top_k"],
+            "disease_description": description_info,
+            "cure_plan": cure_plan,
+            "image_filename": unique_filename,
+            "saved_record_id": record_id,
+            "architecture": "CV Leaf Classifier + Google Gemini Pro Advisory"
+        }
 
     def process_file_path(
         self,
@@ -84,48 +119,43 @@ class DiseaseService:
         """
         Direct inference for programmatic path evaluation (Section 4.1).
         """
-        result = default_engine.predict_detailed(image_path)
+        detection = default_engine.predict_detailed(image_path)
+        predicted_class = detection["predicted_class"]
 
         record_id = None
         if db is not None:
             filename = os.path.basename(image_path)
-            cure_plan = result.get("cureness_plan", {})
             db_record = DiseasePrediction(
                 image_filename=filename,
-                predicted_class=result["predicted_class"],
-                confidence=result["confidence"],
-                is_healthy=result["is_healthy"],
-                severity=result["severity"],
-                recovery_chance_pct=result.get("recovery_chance_pct"),
-                recovery_timeline=result.get("recovery_timeline"),
-                urgency_level=result.get("urgency_level"),
-                precaution=result["precaution"],
-                organic_remedy=result["organic_remedy"],
-                chemical_remedy=result["chemical_remedy"],
-                prognosis_summary=cure_plan.get("prognosis_summary")
+                predicted_class=predicted_class,
+                confidence=detection["confidence"],
+                is_healthy=detection["is_healthy"],
+                severity=detection["severity"],
+                disease_description=f"Automated test prediction for {predicted_class}."
             )
             db.add(db_record)
             db.commit()
             db.refresh(db_record)
             record_id = db_record.id
 
-        result["image_filename"] = os.path.basename(image_path)
-        result["saved_record_id"] = record_id
-        return result
+        detection["saved_record_id"] = record_id
+        return detection
 
-    def get_direct_cure_plan(
+    def get_cure_plan(
         self,
         disease_class: str,
-        crop: Optional[str] = None,
-        growth_stage: Optional[str] = "Growing"
+        crop: Optional[str] = "Crop",
+        growth_stage: Optional[str] = "Growing",
+        language: str = "en"
     ) -> Dict[str, Any]:
         """
-        Direct invocation of Model 2 (Cureness Prescriber).
+        Triggered when the farmer answers 'Yes' to receiving a cure plan.
         """
-        return cure_model.predict_cure(
-            predicted_class=disease_class,
-            crop=crop,
-            growth_stage=growth_stage
+        return gemini_advisor.generate_cure_plan(
+            disease_name=disease_class,
+            crop=crop or "Crop",
+            growth_stage=growth_stage or "Growing",
+            language=language
         )
 
     def get_catalog_classes(self) -> List[Dict[str, Any]]:

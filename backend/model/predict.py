@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
-AgriSmart AI - Mandatory Submission Prediction Interface with Dual Model Support
-Model 1: Leaf Disease Classification
-Model 2: Cureness & Treatment Recommendation
+AgriSmart AI - Mandatory Submission Prediction Interface
+Model 1: Leaf Disease Classification (Computer Vision)
+Gemini Pro: Disease Description & On-Demand Cureness Advisory
 Ref: SIH 2026 Problem Statement 1, Page 3 (Section 4.1).
 """
 
@@ -15,80 +15,104 @@ import json
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 from model.fake_engine import default_engine
-from model.cure_model import cure_model
+from app.services.gemini_service import gemini_advisor
 
 
 def predict(image_path: str) -> str:
     """
     Mandatory Submission Contract Function:
     Accepts a file path to an image and returns strictly the predicted class_label string.
-    Delegates to Model 1 (Disease Detector).
     """
     return default_engine.predict(image_path)
 
 
-def predict_cure(disease_class: str, crop: str = None, stage: str = "Growing") -> dict:
-    """
-    Direct Model 2 interface: Returns treatment, recovery probability, and timeline.
-    """
-    return cure_model.predict_cure(disease_class, crop=crop, growth_stage=stage)
-
-
 def main():
     parser = argparse.ArgumentParser(
-        description="AgriSmart AI - Dual AI Model CLI (Model 1: Disease Detection + Model 2: Cureness Plan)"
+        description="AgriSmart AI - Crop Disease Prediction CLI (CV Detection + Gemini Pro Advisory)"
     )
     parser.add_argument(
         "--image",
         type=str,
-        help="Path to the leaf/crop image file to classify with Model 1."
+        help="Path to the leaf/crop image file to classify."
+    )
+    parser.add_argument(
+        "--describe",
+        action="store_true",
+        help="Use Gemini Pro to describe the disease and prompt if the farmer wants a cure."
+    )
+    parser.add_argument(
+        "--cure",
+        action="store_true",
+        help="Generate full Gemini Pro cure and recovery plan."
+    )
+    parser.add_argument(
+        "--cure-for",
+        type=str,
+        help="Directly generate a Gemini Pro cure plan for a known disease (e.g. 'Tomato Early Blight')."
     )
     parser.add_argument(
         "--stage",
         type=str,
         default="Growing",
-        help="Crop growth stage (e.g. Germination, Growing, Flowering, Fruiting)."
-    )
-    parser.add_argument(
-        "--cure",
-        action="store_true",
-        help="Run Model 2 (Cureness Prescriber) chained after Model 1 disease diagnosis."
-    )
-    parser.add_argument(
-        "--cure-for",
-        type=str,
-        help="Directly run Model 2 for an already known disease class (e.g. 'Tomato Early Blight')."
+        help="Crop growth stage (e.g. Vegetative, Flowering, Fruiting)."
     )
     parser.add_argument(
         "--detailed",
         action="store_true",
-        help="Output complete JSON metadata from both models."
+        help="Output complete JSON metadata."
     )
 
     args = parser.parse_args()
 
     try:
-        # Scenario A: Direct Model 2 call
+        # Scenario A: Direct cure request
         if args.cure_for:
-            cure_res = predict_cure(args.cure_for, stage=args.stage)
-            print(json.dumps(cure_res, indent=2))
+            plan = gemini_advisor.generate_cure_plan(args.cure_for, crop="Crop", growth_stage=args.stage)
+            print(json.dumps(plan, indent=2))
             sys.exit(0)
 
-        # Scenario B: Image inference required
+        # Scenario B: Image prediction
         if not args.image:
             parser.error("Either --image <path> or --cure-for <disease_name> is required.")
 
-        if args.cure or args.detailed:
-            result = default_engine.predict_detailed(args.image, growth_stage=args.stage)
-            print(json.dumps(result, indent=2))
-        else:
-            # Mandatory Section 4.1 contract: strictly prints the predicted class string
+        # Mandatory Section 4.1 check: If called simply with --image, print ONLY the class string!
+        if not (args.describe or args.cure or args.detailed):
             predicted_class = predict(args.image)
             print(predicted_class)
+            sys.exit(0)
 
+        # Detailed analysis flow
+        detection = default_engine.predict_detailed(args.image)
+        predicted_class = detection["predicted_class"]
+        crop = detection["crop"]
+        is_healthy = detection["is_healthy"]
+
+        description_info = gemini_advisor.describe_disease(
+            disease_name=predicted_class,
+            crop=crop,
+            severity=detection["severity"],
+            is_healthy=is_healthy
+        )
+
+        response = {
+            "detection": detection,
+            "disease_description": description_info
+        }
+
+        # If user explicitly wants cure
+        if args.cure and not is_healthy:
+            cure_plan = gemini_advisor.generate_cure_plan(
+                disease_name=predicted_class,
+                crop=crop,
+                growth_stage=args.stage
+            )
+            response["cure_plan"] = cure_plan
+
+        print(json.dumps(response, indent=2))
         sys.exit(0)
+
     except Exception as e:
-        sys.stderr.write(f"Error during prediction: {e}\n")
+        sys.stderr.write(f"Error: {e}\n")
         sys.exit(1)
 
 
