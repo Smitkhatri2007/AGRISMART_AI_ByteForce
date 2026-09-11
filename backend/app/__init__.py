@@ -1,0 +1,3 @@
+"""
+AgriSmart AI - Application Package
+"""

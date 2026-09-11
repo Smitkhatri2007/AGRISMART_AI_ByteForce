@@ -1,0 +1,15 @@
+# Core Web & API Framework
+fastapi>=0.115.0
+uvicorn[standard]>=0.31.0
+pydantic>=2.9.2
+pydantic-settings>=2.5.2
+python-multipart>=0.0.12
+httpx>=0.27.0
+
+# Database & ORM
+sqlalchemy>=2.0.0
+psycopg2-binary>=2.9.9
+
+# Image Processing & ML Utilities (Ready for PyTorch integration)
+pillow>=10.2.0
+numpy>=1.26.0
