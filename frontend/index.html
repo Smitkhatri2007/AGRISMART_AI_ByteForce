@@ -1,0 +1,1020 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AgriSmart AI — Plant Disease Detection</title>
+    <meta name="description" content="AI-powered plant disease detection using deep learning. Upload a leaf image to instantly identify diseases and get expert treatment advice.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --bg: #09100f;
+            --surface: #101a18;
+            --surface2: #162220;
+            --border: rgba(52, 211, 153, 0.12);
+            --border-hover: rgba(52, 211, 153, 0.35);
+            --green-400: #34d399;
+            --green-500: #10b981;
+            --green-600: #059669;
+            --green-glow: rgba(52, 211, 153, 0.15);
+            --amber: #f59e0b;
+            --red: #ef4444;
+            --red-glow: rgba(239, 68, 68, 0.15);
+            --amber-glow: rgba(245, 158, 11, 0.15);
+            --text: #e2e8f0;
+            --text-muted: #64748b;
+            --text-subtle: #94a3b8;
+            --radius: 16px;
+            --radius-sm: 8px;
+            --shadow: 0 4px 32px rgba(0,0,0,0.4);
+        }
+
+        html { scroll-behavior: smooth; }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* ---- BACKGROUND EFFECTS ---- */
+        body::before {
+            content: '';
+            position: fixed;
+            top: -30%;
+            left: -20%;
+            width: 60vw;
+            height: 60vw;
+            background: radial-gradient(ellipse, rgba(16, 185, 129, 0.07) 0%, transparent 70%);
+            pointer-events: none;
+            z-index: 0;
+        }
+        body::after {
+            content: '';
+            position: fixed;
+            bottom: -20%;
+            right: -20%;
+            width: 50vw;
+            height: 50vw;
+            background: radial-gradient(ellipse, rgba(52, 211, 153, 0.05) 0%, transparent 70%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* ---- NAVBAR ---- */
+        nav {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1rem 2rem;
+            background: rgba(9, 16, 15, 0.85);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border);
+        }
+        .nav-logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-family: 'Space Grotesk', sans-serif;
+            font-weight: 700;
+            font-size: 1.25rem;
+            color: var(--green-400);
+            text-decoration: none;
+        }
+        .nav-logo-icon {
+            width: 36px;
+            height: 36px;
+            background: linear-gradient(135deg, var(--green-500), var(--green-400));
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+            box-shadow: 0 0 20px rgba(52, 211, 153, 0.3);
+        }
+        .nav-badge {
+            background: var(--green-glow);
+            border: 1px solid var(--border);
+            color: var(--green-400);
+            font-size: 0.7rem;
+            font-weight: 600;
+            padding: 3px 10px;
+            border-radius: 20px;
+            letter-spacing: 0.05em;
+        }
+
+        /* ---- MAIN WRAPPER ---- */
+        main {
+            position: relative;
+            z-index: 1;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 3rem 1.5rem 5rem;
+        }
+
+        /* ---- HERO ---- */
+        .hero {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+        .hero-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: var(--green-glow);
+            border: 1px solid var(--border);
+            color: var(--green-400);
+            font-size: 0.78rem;
+            font-weight: 600;
+            padding: 5px 14px;
+            border-radius: 20px;
+            margin-bottom: 1.2rem;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+        }
+        .hero h1 {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: clamp(2rem, 5vw, 3.2rem);
+            font-weight: 700;
+            line-height: 1.15;
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, #fff 40%, var(--green-400) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .hero p {
+            font-size: 1.05rem;
+            color: var(--text-subtle);
+            max-width: 500px;
+            margin: 0 auto 1.5rem;
+            line-height: 1.65;
+        }
+        .hero-stats {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            flex-wrap: wrap;
+        }
+        .stat {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .stat-value {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--green-400);
+        }
+        .stat-label {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+        }
+
+        /* ---- UPLOAD ZONE ---- */
+        .upload-section {
+            background: var(--surface);
+            border: 2px dashed var(--border);
+            border-radius: var(--radius);
+            padding: 2.5rem;
+            text-align: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            margin-bottom: 1.5rem;
+        }
+        .upload-section::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: var(--green-glow);
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        .upload-section.dragging,
+        .upload-section:hover {
+            border-color: var(--border-hover);
+        }
+        .upload-section.dragging::before,
+        .upload-section:hover::before {
+            opacity: 1;
+        }
+        .upload-icon {
+            font-size: 3rem;
+            margin-bottom: 0.75rem;
+            display: block;
+            transition: transform 0.3s;
+        }
+        .upload-section:hover .upload-icon { transform: translateY(-4px) scale(1.05); }
+        .upload-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text);
+            margin-bottom: 0.4rem;
+        }
+        .upload-sub {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-bottom: 1.5rem;
+        }
+        .upload-actions {
+            display: flex;
+            gap: 0.75rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        #fileInput { display: none; }
+
+        /* Preview inside upload zone */
+        #previewContainer {
+            display: none;
+            position: relative;
+            margin-top: 1.5rem;
+        }
+        #previewImg {
+            width: 100%;
+            max-height: 280px;
+            object-fit: contain;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border);
+        }
+        .preview-clear {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            background: rgba(0,0,0,0.6);
+            border: 1px solid var(--border);
+            color: #fff;
+            border-radius: 50%;
+            width: 28px;
+            height: 28px;
+            font-size: 1rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s;
+        }
+        .preview-clear:hover { background: rgba(239,68,68,0.5); }
+
+        /* ---- BUTTONS ---- */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            padding: 0.6rem 1.3rem;
+            border-radius: var(--radius-sm);
+            font-family: 'Inter', sans-serif;
+            font-size: 0.88rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.22s ease;
+            border: none;
+            text-decoration: none;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, var(--green-500), var(--green-400));
+            color: #000;
+            box-shadow: 0 4px 20px rgba(16, 185, 129, 0.3);
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 28px rgba(16, 185, 129, 0.45);
+        }
+        .btn-primary:active { transform: translateY(0); }
+        .btn-outline {
+            background: transparent;
+            color: var(--green-400);
+            border: 1px solid var(--border);
+        }
+        .btn-outline:hover {
+            border-color: var(--border-hover);
+            background: var(--green-glow);
+        }
+        .btn-analyze {
+            width: 100%;
+            justify-content: center;
+            padding: 0.85rem 2rem;
+            font-size: 1rem;
+            border-radius: var(--radius-sm);
+            background: linear-gradient(135deg, var(--green-600), var(--green-400));
+            color: #000;
+            font-weight: 700;
+            letter-spacing: 0.01em;
+            box-shadow: 0 4px 24px rgba(16,185,129,0.35);
+            position: relative;
+            overflow: hidden;
+        }
+        .btn-analyze::before {
+            content: '';
+            position: absolute;
+            top: 0; left: -100%;
+            width: 100%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent);
+            transition: left 0.5s;
+        }
+        .btn-analyze:hover::before { left: 100%; }
+        .btn-analyze:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 32px rgba(16,185,129,0.5);
+        }
+        .btn-analyze:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* ---- SPINNER ---- */
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .spinner {
+            width: 18px;
+            height: 18px;
+            border: 2px solid rgba(0,0,0,0.2);
+            border-top-color: #000;
+            border-radius: 50%;
+            animation: spin 0.7s linear infinite;
+            flex-shrink: 0;
+        }
+
+        /* ---- RESULTS SECTION ---- */
+        #resultsSection {
+            display: none;
+        }
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(24px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .fade-in-up { animation: fadeInUp 0.4s ease forwards; }
+
+        /* Primary result card */
+        .result-primary {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 1.75rem;
+            margin-bottom: 1.25rem;
+            position: relative;
+            overflow: hidden;
+        }
+        .result-primary::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, var(--green-500), var(--green-400), transparent);
+        }
+        .result-header {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 1rem;
+            margin-bottom: 1.25rem;
+            flex-wrap: wrap;
+        }
+        .result-plant {
+            font-size: 0.78rem;
+            font-weight: 600;
+            color: var(--green-400);
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            margin-bottom: 4px;
+        }
+        .result-disease-name {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text);
+            line-height: 1.2;
+        }
+        .severity-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            flex-shrink: 0;
+        }
+        .severity-none { background: var(--green-glow); color: var(--green-400); border: 1px solid var(--border); }
+        .severity-moderate { background: var(--amber-glow); color: var(--amber); border: 1px solid rgba(245,158,11,0.2); }
+        .severity-high { background: rgba(249, 115, 22, 0.1); color: #f97316; border: 1px solid rgba(249,115,22,0.2); }
+        .severity-critical { background: var(--red-glow); color: var(--red); border: 1px solid rgba(239,68,68,0.2); }
+
+        /* Confidence bar */
+        .confidence-wrap {
+            margin-bottom: 1.25rem;
+        }
+        .confidence-label {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.8rem;
+            font-weight: 500;
+            color: var(--text-subtle);
+            margin-bottom: 6px;
+        }
+        .confidence-val {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--green-400);
+        }
+        .bar-track {
+            height: 8px;
+            background: var(--surface2);
+            border-radius: 99px;
+            overflow: hidden;
+        }
+        .bar-fill {
+            height: 100%;
+            border-radius: 99px;
+            background: linear-gradient(90deg, var(--green-600), var(--green-400));
+            width: 0%;
+            transition: width 1.2s cubic-bezier(0.16, 1, 0.3, 1);
+            box-shadow: 0 0 12px rgba(52,211,153,0.4);
+        }
+        .bar-fill.amber { background: linear-gradient(90deg, #d97706, var(--amber)); box-shadow: 0 0 12px rgba(245,158,11,0.4); }
+        .bar-fill.red { background: linear-gradient(90deg, #b91c1c, var(--red)); box-shadow: 0 0 12px rgba(239,68,68,0.4); }
+
+        /* Info grid */
+        .info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-top: 1.25rem;
+        }
+        @media (max-width: 560px) { .info-grid { grid-template-columns: 1fr; } }
+        .info-card {
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            padding: 1rem 1.1rem;
+        }
+        .info-card-title {
+            font-size: 0.72rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .info-card-title.treatment { color: var(--amber); }
+        .info-card-title.prevention { color: var(--green-400); }
+        .info-card-title.description { color: var(--text-subtle); }
+        .info-card p {
+            font-size: 0.84rem;
+            color: var(--text-subtle);
+            line-height: 1.6;
+        }
+        .description-card {
+            grid-column: 1 / -1;
+        }
+
+        /* ---- TOP-3 OTHER PREDICTIONS ---- */
+        .section-label {
+            font-size: 0.72rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--text-muted);
+            margin-bottom: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .section-label::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: var(--border);
+        }
+        .alt-predictions {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.75rem;
+            margin-bottom: 1.5rem;
+        }
+        @media (max-width: 480px) { .alt-predictions { grid-template-columns: 1fr; } }
+        .alt-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            padding: 0.85rem 1rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .alt-card:hover {
+            border-color: var(--border-hover);
+            background: var(--green-glow);
+        }
+        .alt-plant {
+            font-size: 0.68rem;
+            font-weight: 600;
+            color: var(--green-400);
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+        }
+        .alt-disease {
+            font-size: 0.88rem;
+            font-weight: 600;
+            color: var(--text);
+            margin: 2px 0 6px;
+        }
+        .alt-conf {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--text-muted);
+        }
+        .alt-bar-track { height: 4px; background: var(--surface2); border-radius: 99px; margin-top: 6px; overflow: hidden; }
+        .alt-bar-fill { height: 100%; border-radius: 99px; background: linear-gradient(90deg, var(--green-600), var(--green-400)); width: 0%; transition: width 1.2s cubic-bezier(0.16, 1, 0.3, 1) 0.3s; }
+
+        /* ---- HISTORY ---- */
+        #historySection { display: none; }
+        .history-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            gap: 0.75rem;
+            margin-top: 0.75rem;
+        }
+        .history-item {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            overflow: hidden;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .history-item:hover { border-color: var(--border-hover); transform: translateY(-2px); }
+        .history-img {
+            width: 100%;
+            height: 80px;
+            object-fit: cover;
+        }
+        .history-info {
+            padding: 0.5rem 0.6rem;
+        }
+        .history-disease {
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: var(--text-subtle);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .history-conf {
+            font-size: 0.65rem;
+            color: var(--text-muted);
+        }
+
+        /* ---- CAMERA MODAL ---- */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.75);
+            backdrop-filter: blur(8px);
+            z-index: 200;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal-overlay.open { display: flex; }
+        .modal {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 1.5rem;
+            width: 90%;
+            max-width: 500px;
+            position: relative;
+        }
+        .modal-title {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            color: var(--text);
+        }
+        #cameraVideo {
+            width: 100%;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border);
+            background: #000;
+        }
+        .modal-actions { display: flex; gap: 0.75rem; margin-top: 1rem; }
+        .modal-close {
+            position: absolute;
+            top: 1rem; right: 1rem;
+            background: none; border: none;
+            color: var(--text-muted);
+            font-size: 1.25rem;
+            cursor: pointer;
+        }
+        #cameraCanvas { display: none; }
+
+        /* ---- FOOTER ---- */
+        footer {
+            position: relative;
+            z-index: 1;
+            text-align: center;
+            padding: 2rem;
+            color: var(--text-muted);
+            font-size: 0.78rem;
+            border-top: 1px solid var(--border);
+        }
+        footer span { color: var(--green-400); }
+
+        /* Pulse dot for "live" model */
+        @keyframes pulse-dot {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(0.8); }
+        }
+        .live-dot {
+            width: 7px;
+            height: 7px;
+            background: var(--green-400);
+            border-radius: 50%;
+            display: inline-block;
+            animation: pulse-dot 1.8s ease-in-out infinite;
+        }
+    </style>
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav>
+    <a href="#" class="nav-logo">
+        <div class="nav-logo-icon">🌿</div>
+        AgriSmart AI
+    </a>
+    <div style="display:flex; align-items:center; gap:0.75rem;">
+        <span class="live-dot"></span>
+        <span class="nav-badge">ResNet-18 · 38 Classes</span>
+    </div>
+</nav>
+
+<!-- MAIN -->
+<main>
+
+    <!-- HERO -->
+    <div class="hero">
+        <div class="hero-tag">🔬 AI-Powered Diagnosis</div>
+        <h1>Detect Plant Diseases<br>Instantly with Deep Learning</h1>
+        <p>Upload a leaf image and our custom-trained ResNet-18 model will diagnose diseases across 14 crops with expert treatment recommendations.</p>
+        <div class="hero-stats">
+            <div class="stat">
+                <div class="stat-value">38</div>
+                <div class="stat-label">Disease Classes</div>
+            </div>
+            <div class="stat">
+                <div class="stat-value">14</div>
+                <div class="stat-label">Crop Types</div>
+            </div>
+            <div class="stat">
+                <div class="stat-value">Top-3</div>
+                <div class="stat-label">Predictions</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- UPLOAD -->
+    <div class="upload-section" id="dropZone">
+        <span class="upload-icon">🍃</span>
+        <div class="upload-title">Drop your leaf image here</div>
+        <div class="upload-sub">Supports JPG, PNG, WEBP · Max 10MB</div>
+        <div class="upload-actions">
+            <button class="btn btn-primary" onclick="document.getElementById('fileInput').click()">
+                📁 Browse Files
+            </button>
+            <button class="btn btn-outline" id="cameraBtn">
+                📷 Use Camera
+            </button>
+        </div>
+        <input type="file" id="fileInput" accept="image/*">
+        <div id="previewContainer">
+            <button class="preview-clear" id="clearPreview" title="Remove">✕</button>
+            <img id="previewImg" src="" alt="Selected leaf image">
+        </div>
+    </div>
+
+    <!-- ANALYZE BUTTON -->
+    <button class="btn btn-analyze" id="analyzeBtn" disabled>
+        <span id="analyzeBtnText">🔍 Analyze Plant — Select image first</span>
+    </button>
+
+    <!-- RESULTS -->
+    <div id="resultsSection" style="margin-top: 2rem;">
+
+        <!-- Primary Result -->
+        <div class="result-primary fade-in-up" id="primaryCard">
+            <div class="result-header">
+                <div>
+                    <div class="result-plant" id="resultPlant"></div>
+                    <div class="result-disease-name" id="resultDisease"></div>
+                </div>
+                <div class="severity-badge" id="severityBadge"></div>
+            </div>
+
+            <div class="confidence-wrap">
+                <div class="confidence-label">
+                    <span>Model Confidence</span>
+                    <span class="confidence-val" id="confidenceVal"></span>
+                </div>
+                <div class="bar-track">
+                    <div class="bar-fill" id="confidenceBar"></div>
+                </div>
+            </div>
+
+            <div class="info-grid">
+                <div class="info-card description-card">
+                    <div class="info-card-title description">🔎 About this Disease</div>
+                    <p id="diseaseDescription"></p>
+                </div>
+                <div class="info-card">
+                    <div class="info-card-title treatment">💊 Treatment</div>
+                    <p id="diseaseTreatment"></p>
+                </div>
+                <div class="info-card">
+                    <div class="info-card-title prevention">🛡️ Prevention</div>
+                    <p id="diseasePrevention"></p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Alt Predictions -->
+        <div class="section-label">Other Possibilities</div>
+        <div class="alt-predictions" id="altPredictions"></div>
+
+    </div>
+
+    <!-- SCAN HISTORY -->
+    <div id="historySection">
+        <div class="section-label" style="margin-top: 2rem;">Recent Scans</div>
+        <div class="history-grid" id="historyGrid"></div>
+    </div>
+
+</main>
+
+<!-- CAMERA MODAL -->
+<div class="modal-overlay" id="cameraModal">
+    <div class="modal">
+        <div class="modal-title">📷 Capture Leaf Image</div>
+        <button class="modal-close" id="closeCamera">✕</button>
+        <video id="cameraVideo" autoplay playsinline></video>
+        <canvas id="cameraCanvas"></canvas>
+        <div class="modal-actions">
+            <button class="btn btn-primary" id="captureBtn" style="flex:1; justify-content:center;">📸 Capture</button>
+            <button class="btn btn-outline" id="closeCameraBtn">Cancel</button>
+        </div>
+    </div>
+</div>
+
+<!-- FOOTER -->
+<footer>
+    Built with <span>♥</span> using PyTorch ResNet-18 · AgriSmart AI &copy; 2025
+</footer>
+
+<script>
+    // ==============================
+    // STATE
+    // ==============================
+    let selectedFile = null;
+    let scanHistory = [];
+    let cameraStream = null;
+
+    const fileInput = document.getElementById('fileInput');
+    const dropZone = document.getElementById('dropZone');
+    const previewContainer = document.getElementById('previewContainer');
+    const previewImg = document.getElementById('previewImg');
+    const clearBtn = document.getElementById('clearPreview');
+    const analyzeBtn = document.getElementById('analyzeBtn');
+    const analyzeBtnText = document.getElementById('analyzeBtnText');
+    const resultsSection = document.getElementById('resultsSection');
+    const historySection = document.getElementById('historySection');
+    const historyGrid = document.getElementById('historyGrid');
+
+    // ==============================
+    // FILE HANDLING
+    // ==============================
+    function setFile(file) {
+        if (!file || !file.type.startsWith('image/')) {
+            alert('Please select a valid image file.');
+            return;
+        }
+        selectedFile = file;
+        const url = URL.createObjectURL(file);
+        previewImg.src = url;
+        previewContainer.style.display = 'block';
+        analyzeBtn.disabled = false;
+        analyzeBtnText.textContent = `🔍 Analyze "${file.name}"`;
+    }
+
+    function clearFile() {
+        selectedFile = null;
+        previewImg.src = '';
+        previewContainer.style.display = 'none';
+        analyzeBtn.disabled = true;
+        analyzeBtnText.textContent = '🔍 Analyze Plant — Select image first';
+        fileInput.value = '';
+    }
+
+    fileInput.addEventListener('change', e => {
+        if (e.target.files[0]) setFile(e.target.files[0]);
+    });
+    clearBtn.addEventListener('click', e => { e.stopPropagation(); clearFile(); });
+
+    // Drag & drop
+    dropZone.addEventListener('click', e => {
+        if (!e.target.closest('#previewContainer') && !e.target.closest('.upload-actions')) {
+            fileInput.click();
+        }
+    });
+    dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('dragging'); });
+    dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragging'));
+    dropZone.addEventListener('drop', e => {
+        e.preventDefault();
+        dropZone.classList.remove('dragging');
+        if (e.dataTransfer.files[0]) setFile(e.dataTransfer.files[0]);
+    });
+
+    // ==============================
+    // CAMERA
+    // ==============================
+    const cameraModal = document.getElementById('cameraModal');
+    const cameraVideo = document.getElementById('cameraVideo');
+    const cameraCanvas = document.getElementById('cameraCanvas');
+
+    document.getElementById('cameraBtn').addEventListener('click', async () => {
+        try {
+            cameraStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+            cameraVideo.srcObject = cameraStream;
+            cameraModal.classList.add('open');
+        } catch (err) {
+            alert('Camera not available: ' + err.message);
+        }
+    });
+
+    function stopCamera() {
+        if (cameraStream) { cameraStream.getTracks().forEach(t => t.stop()); cameraStream = null; }
+        cameraModal.classList.remove('open');
+    }
+
+    document.getElementById('closeCamera').addEventListener('click', stopCamera);
+    document.getElementById('closeCameraBtn').addEventListener('click', stopCamera);
+
+    document.getElementById('captureBtn').addEventListener('click', () => {
+        cameraCanvas.width = cameraVideo.videoWidth;
+        cameraCanvas.height = cameraVideo.videoHeight;
+        cameraCanvas.getContext('2d').drawImage(cameraVideo, 0, 0);
+        cameraCanvas.toBlob(blob => {
+            const file = new File([blob], 'camera_capture.jpg', { type: 'image/jpeg' });
+            setFile(file);
+            stopCamera();
+        }, 'image/jpeg', 0.9);
+    });
+
+    // ==============================
+    // SEVERITY HELPERS
+    // ==============================
+    function severityIcon(s) {
+        return { none: '✅', moderate: '⚠️', high: '🔴', critical: '🚨' }[s] || '⚠️';
+    }
+    function severityLabel(s) {
+        return { none: 'Healthy', moderate: 'Moderate', high: 'High Risk', critical: 'Critical' }[s] || s;
+    }
+    function barClass(conf) {
+        if (conf >= 70) return '';
+        if (conf >= 40) return 'amber';
+        return 'red';
+    }
+
+    // ==============================
+    // ANALYSIS
+    // ==============================
+    analyzeBtn.addEventListener('click', async () => {
+        if (!selectedFile) return;
+
+        // Show loading
+        analyzeBtn.disabled = true;
+        analyzeBtnText.innerHTML = '<div class="spinner"></div> Analyzing...';
+        resultsSection.style.display = 'none';
+
+        const formData = new FormData();
+        formData.append('file', selectedFile);
+
+        try {
+            const resp = await fetch('/predict', { method: 'POST', body: formData });
+            if (!resp.ok) {
+                const err = await resp.json();
+                throw new Error(err.error || 'Server error');
+            }
+            const data = await resp.json();
+            renderResults(data);
+            addToHistory(previewImg.src, data.predictions[0]);
+        } catch (err) {
+            alert('Error: ' + err.message);
+        } finally {
+            analyzeBtn.disabled = false;
+            analyzeBtnText.textContent = `🔍 Re-analyze`;
+        }
+    });
+
+    // ==============================
+    // RENDER RESULTS
+    // ==============================
+    function renderResults(data) {
+        const top = data.predictions[0];
+
+        // Primary card
+        document.getElementById('resultPlant').textContent = `🌱 ${top.plant}`;
+        document.getElementById('resultDisease').textContent = top.condition;
+        document.getElementById('confidenceVal').textContent = `${top.confidence}%`;
+
+        const bar = document.getElementById('confidenceBar');
+        bar.className = 'bar-fill ' + barClass(top.confidence);
+        setTimeout(() => { bar.style.width = `${Math.min(top.confidence, 100)}%`; }, 50);
+
+        const badge = document.getElementById('severityBadge');
+        badge.className = `severity-badge severity-${top.severity}`;
+        badge.textContent = `${severityIcon(top.severity)} ${severityLabel(top.severity)}`;
+
+        document.getElementById('diseaseDescription').textContent = top.description;
+        document.getElementById('diseaseTreatment').textContent = top.treatment;
+        document.getElementById('diseasePrevention').textContent = top.prevention;
+
+        // Alt predictions (2nd and 3rd)
+        const altContainer = document.getElementById('altPredictions');
+        altContainer.innerHTML = '';
+        data.predictions.slice(1).forEach((pred, i) => {
+            const div = document.createElement('div');
+            div.className = 'alt-card';
+            div.innerHTML = `
+                <div class="alt-plant">${pred.plant}</div>
+                <div class="alt-disease">${pred.condition}</div>
+                <div class="alt-conf">${pred.confidence}% confidence</div>
+                <div class="alt-bar-track"><div class="alt-bar-fill" data-conf="${pred.confidence}"></div></div>
+            `;
+            altContainer.appendChild(div);
+        });
+        // Animate alt bars
+        setTimeout(() => {
+            document.querySelectorAll('.alt-bar-fill').forEach(b => {
+                b.style.width = `${Math.min(parseFloat(b.dataset.conf), 100)}%`;
+            });
+        }, 100);
+
+        // Show results
+        resultsSection.style.display = 'block';
+        resultsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    // ==============================
+    // HISTORY
+    // ==============================
+    function addToHistory(imgSrc, pred) {
+        scanHistory.unshift({ imgSrc, pred, time: new Date() });
+        if (scanHistory.length > 8) scanHistory.pop();
+        renderHistory();
+    }
+
+    function renderHistory() {
+        if (scanHistory.length === 0) return;
+        historySection.style.display = 'block';
+        historyGrid.innerHTML = '';
+        scanHistory.forEach((item, i) => {
+            const div = document.createElement('div');
+            div.className = 'history-item';
+            div.innerHTML = `
+                <img class="history-img" src="${item.imgSrc}" alt="Scan ${i+1}">
+                <div class="history-info">
+                    <div class="history-disease">${item.pred.condition}</div>
+                    <div class="history-conf">${item.pred.confidence}%</div>
+                </div>
+            `;
+            div.addEventListener('click', () => {
+                previewImg.src = item.imgSrc;
+                previewContainer.style.display = 'block';
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            });
+            historyGrid.appendChild(div);
+        });
+    }
+</script>
+</body>
+</html>
