@@ -1,0 +1,8 @@
+/* ==========================================================================
+   AgriSmart AI - Main Stylesheet
+   Combines Variables, Layout & Component Styles
+   ========================================================================== */
+
+@import url('variables.css');
+@import url('layout.css');
+@import url('components.css');

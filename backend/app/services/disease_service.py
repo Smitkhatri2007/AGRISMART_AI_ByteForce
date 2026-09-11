@@ -66,7 +66,7 @@ class DiseaseService:
 
         # Step 3: Optional cure generation if farmer already requested it
         cure_plan = None
-        if include_cure and not is_healthy:
+        if include_cure:
             cure_plan = gemini_advisor.generate_cure_plan(
                 disease_name=predicted_class,
                 crop=crop,

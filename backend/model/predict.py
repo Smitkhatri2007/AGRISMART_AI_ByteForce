@@ -100,7 +100,7 @@ def main():
         }
 
         # If user explicitly wants cure
-        if args.cure and not is_healthy:
+        if args.cure:
             cure_plan = gemini_advisor.generate_cure_plan(
                 disease_name=predicted_class,
                 crop=crop,

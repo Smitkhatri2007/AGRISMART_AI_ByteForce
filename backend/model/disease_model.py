@@ -45,7 +45,9 @@ class DiseaseDetectionModel:
         try:
             with Image.open(image_path) as img:
                 img.verify()
-            return Image.open(image_path)
+            img = Image.open(image_path)
+            img.load()
+            return img
         except Exception as e:
             raise ValueError(f"Invalid image file at '{image_path}': {e}")
 
@@ -55,11 +57,10 @@ class DiseaseDetectionModel:
 
     def predict_detailed(self, image_path: str) -> Dict[str, Any]:
         """Runs inference and returns detailed detection probabilities."""
-        img = self.validate_image(image_path)
-
-        if USE_REAL_DISEASE_MODEL and self.real_model is not None:
-            return self._run_real_inference(img, image_path)
-        return self._run_mock_inference(img, image_path)
+        with self.validate_image(image_path) as img:
+            if USE_REAL_DISEASE_MODEL and self.real_model is not None:
+                return self._run_real_inference(img, image_path)
+            return self._run_mock_inference(img, image_path)
 
     def _run_mock_inference(self, img: Image.Image, image_path: str) -> Dict[str, Any]:
         with open(image_path, "rb") as f:
