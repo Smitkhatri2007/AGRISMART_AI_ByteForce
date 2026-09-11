@@ -7,7 +7,7 @@
 // - Production (Vercel): points to your deployed Render backend
 const API_BASE_URL = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
     ? 'http://127.0.0.1:8000'
-    : 'https://agrismart-backend.onrender.com'; // Replace with your Render URL after deployment
+    : 'https://agrismart-ai-byteforce.onrender.com';
 
 /**
  * Normalizes backend's DiseasePredictionResponse into the UI prediction model.
