@@ -10,7 +10,7 @@ import os
 import uuid
 from typing import Dict, Any, List, Optional
 from sqlalchemy.orm import Session
-from model.fake_engine import default_engine
+from model.disease_model import disease_model
 from app.services.gemini_service import gemini_advisor
 from model.class_catalog import CLASS_METADATA, ALL_CLASSES
 from app.models.diagnosis import DiseasePrediction
@@ -49,7 +49,7 @@ class DiseaseService:
             f.write(file_bytes)
 
         # Step 1: CV Model detection
-        detection = default_engine.predict_detailed(saved_path)
+        detection = disease_model.predict_detailed(saved_path)
         predicted_class = detection["predicted_class"]
         crop = detection["crop"]
         is_healthy = detection["is_healthy"]
@@ -119,7 +119,7 @@ class DiseaseService:
         """
         Direct inference for programmatic path evaluation (Section 4.1).
         """
-        detection = default_engine.predict_detailed(image_path)
+        detection = disease_model.predict_detailed(image_path)
         predicted_class = detection["predicted_class"]
 
         record_id = None

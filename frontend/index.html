@@ -1,156 +1,508 @@
 <!DOCTYPE html>
-<!-- AgriSmart AI v1.0.1 -->
+<!-- AgriSmart AI v4.0 - Enterprise Edition -->
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AgriSmart AI — Plant Disease Detection</title>
-    <meta name="description" content="AI-powered plant disease detection using deep learning. Upload a leaf image to instantly identify diseases and get expert treatment advice.">
+    <meta name="description" content="AI-powered plant disease detection. Upload a leaf image to instantly identify diseases and get expert treatment advice from AgriBot.">
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Playfair+Display:wght@600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
 
 <!-- NAVBAR -->
-<nav>
+<nav class="navbar">
     <a href="#" class="nav-logo">
-        <div class="nav-logo-icon">🌿</div>
-        AgriSmart AI
+        <svg width="28" height="28" viewBox="0 0 32 32" fill="none"><path d="M16 3C9.4 3 4 8.4 4 15c0 4.2 2.1 7.9 5.3 10.2C10.5 26.3 12.1 29 16 29s5.5-2.7 6.7-3.8C25.9 22.9 28 19.2 28 15c0-6.6-5.4-12-12-12z" fill="#4caf50" opacity=".3"/><path d="M16 6c-2.5 3-5 7-5 10a5 5 0 0 0 10 0c0-3-2.5-7-5-10z" fill="#2e7d32"/></svg>
+        <span>AgriSmart AI</span>
     </a>
-    <div style="display:flex; align-items:center; gap:0.75rem;">
-        <span class="live-dot"></span>
-        <span class="nav-badge">ResNet-18 · 38 Classes</span>
+    <div class="nav-tabs">
+        <button class="nav-tab active" data-tab="diagnose">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12h4l3-9 5 18 3-9h5"/></svg>
+            Diagnose
+        </button>
+        <button class="nav-tab" data-tab="history">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            History
+        </button>
+        <button class="nav-tab" data-tab="about">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+            About
+        </button>
+    </div>
+    <div class="nav-right">
+        <select id="languageSelect" class="lang-select" title="Language">
+            <option value="en">EN</option>
+            <option value="hi">HI</option>
+            <option value="mr">MR</option>
+            <option value="ta">TA</option>
+            <option value="te">TE</option>
+            <option value="kn">KN</option>
+            <option value="gu">GU</option>
+        </select>
     </div>
 </nav>
 
-<!-- MAIN -->
-<main>
-
-    <!-- HERO -->
-    <div class="hero">
-        <div class="hero-tag">🔬 AI-Powered Diagnosis</div>
-        <h1>Detect Plant Diseases<br>Instantly with Deep Learning</h1>
-        <p>Upload a leaf image and our custom-trained ResNet-18 model will diagnose diseases across 14 crops with expert treatment recommendations.</p>
-        <div class="hero-stats">
-            <div class="stat">
-                <div class="stat-value">38</div>
-                <div class="stat-label">Disease Classes</div>
-            </div>
-            <div class="stat">
-                <div class="stat-value">14</div>
-                <div class="stat-label">Crop Types</div>
-            </div>
-            <div class="stat">
-                <div class="stat-value">Top-3</div>
-                <div class="stat-label">Predictions</div>
-            </div>
+<!-- CRITICAL ALERT BANNER -->
+<div class="critical-banner" id="urgentBanner" style="display:none;">
+    <div class="critical-banner-inner">
+        <svg class="critical-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        <div>
+            <strong>Critical Disease Detected</strong>
+            <span id="urgentBannerText">Immediate action required within 24–48 hours.</span>
         </div>
+        <button onclick="document.getElementById('urgentBanner').style.display='none'">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
     </div>
+</div>
 
-    <!-- UPLOAD -->
-    <div class="upload-section" id="dropZone">
-        <span class="upload-icon">🍃</span>
-        <div class="upload-title">Drop your leaf image here</div>
-        <div class="upload-sub">Supports JPG, PNG, WEBP · Max 10MB</div>
-        <div class="upload-actions">
-            <button class="btn btn-primary" onclick="document.getElementById('fileInput').click()">
-                📁 Browse Files
-            </button>
-            <button class="btn btn-outline" id="cameraBtn">
-                📷 Use Camera
-            </button>
-        </div>
-        <input type="file" id="fileInput" accept="image/*">
-        <div id="previewContainer">
-            <button class="preview-clear" id="clearPreview" title="Remove">✕</button>
-            <img id="previewImg" src="" alt="Selected leaf image">
-        </div>
-    </div>
+<main class="main-content">
 
-    <!-- ANALYZE BUTTON -->
-    <button class="btn btn-analyze" id="analyzeBtn" disabled>
-        <span id="analyzeBtnText">🔍 Analyze Plant — Select image first</span>
-    </button>
+    <!-- ======================================================= -->
+    <!-- TAB: DIAGNOSE                                           -->
+    <!-- ======================================================= -->
+    <section class="tab-section active" id="tab-diagnose">
 
-    <!-- RESULTS -->
-    <div id="resultsSection" style="margin-top: 2rem;">
-
-        <!-- Primary Result -->
-        <div class="result-primary fade-in-up" id="primaryCard">
-            <div class="result-header">
-                <div>
-                    <div class="result-plant" id="resultPlant"></div>
-                    <div class="result-disease-name" id="resultDisease"></div>
-                </div>
-                <div class="severity-badge" id="severityBadge"></div>
+        <!-- HERO -->
+        <div class="hero-section">
+            <div class="hero-badge">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 12h4l3-9 5 18 3-9h5"/></svg>
+                AI Plant Diagnostics
             </div>
-
-            <div class="confidence-wrap">
-                <div class="confidence-label">
-                    <span>Model Confidence</span>
-                    <span class="confidence-val" id="confidenceVal"></span>
-                </div>
-                <div class="bar-track">
-                    <div class="bar-fill" id="confidenceBar"></div>
-                </div>
-            </div>
-
-            <div class="info-grid">
-                <div class="info-card description-card">
-                    <div class="info-card-title description">🔎 About this Disease</div>
-                    <p id="diseaseDescription"></p>
-                </div>
-                <div class="info-card">
-                    <div class="info-card-title treatment">💊 Treatment</div>
-                    <p id="diseaseTreatment"></p>
-                </div>
-                <div class="info-card">
-                    <div class="info-card-title prevention">🛡️ Prevention</div>
-                    <p id="diseasePrevention"></p>
-                </div>
+            <h1 class="hero-title">Identify Any Plant Disease<br><span class="hero-accent">Instantly & Accurately</span></h1>
+            <p class="hero-sub">Upload a clear photo of the affected leaf. Our AI diagnoses the disease and AgriBot guides you through full recovery.</p>
+            <!-- Stat Pills -->
+            <div class="stat-pills">
+                <div class="stat-pill"><span class="stat-pill-num">38</span><span class="stat-pill-lbl">Disease Classes</span></div>
+                <div class="stat-pill-div"></div>
+                <div class="stat-pill"><span class="stat-pill-num">14</span><span class="stat-pill-lbl">Crop Types</span></div>
+                <div class="stat-pill-div"></div>
+                <div class="stat-pill"><span class="stat-pill-num">Top‑3</span><span class="stat-pill-lbl">Predictions</span></div>
+                <div class="stat-pill-div"></div>
+                <div class="stat-pill"><span class="stat-pill-num">AI</span><span class="stat-pill-lbl">Advisory Bot</span></div>
             </div>
         </div>
 
-        <!-- Alt Predictions -->
-        <div class="section-label">Other Possibilities</div>
-        <div class="alt-predictions" id="altPredictions"></div>
+        <!-- UPLOAD CARD -->
+        <div class="card upload-card" id="dropZone">
+            <div class="upload-zone-inner" id="uploadZoneInner">
+                <div class="upload-leaf-icon">
+                    <svg width="56" height="56" viewBox="0 0 56 56" fill="none"><path d="M28 8C19 17 13 26 13 34a15 15 0 0 0 30 0C43 26 37 17 28 8z" fill="#c8e6c9" stroke="#4caf50" stroke-width="1.5"/><path d="M28 8v38" stroke="#4caf50" stroke-width="1.5" stroke-linecap="round"/><path d="M19 24c5 2 9 2 9 2" stroke="#4caf50" stroke-width="1.2" stroke-linecap="round"/><path d="M37 24c-5 2-9 2-9 2" stroke="#4caf50" stroke-width="1.2" stroke-linecap="round"/><path d="M20 32c4 2 8 2 8 2" stroke="#4caf50" stroke-width="1.2" stroke-linecap="round"/><path d="M36 32c-4 2-8 2-8 2" stroke="#4caf50" stroke-width="1.2" stroke-linecap="round"/></svg>
+                </div>
+                <p class="upload-title">Drop a leaf image here</p>
+                <p class="upload-sub">JPG, PNG, WEBP · Max 10MB · Supports front & back of leaf</p>
+                <div class="upload-btn-row">
+                    <button class="btn-primary" onclick="document.getElementById('fileInput').click()">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                        Browse Files
+                    </button>
+                    <button class="btn-outline" id="cameraBtn">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+                        Use Camera
+                    </button>
+                </div>
+            </div>
+            <input type="file" id="fileInput" accept="image/*" style="display:none">
+            <div id="previewContainer" style="display:none">
+                <button class="preview-remove" id="clearPreview" title="Remove">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                </button>
+                <img id="previewImg" src="" alt="Leaf preview">
+            </div>
+        </div>
 
-    </div>
+        <!-- ANALYZE BUTTON -->
+        <button class="btn-analyze" id="analyzeBtn" disabled>
+            <span id="analyzeBtnText">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:8px; vertical-align:-3px;"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                Select an image to analyze
+            </span>
+        </button>
 
-    <!-- SCAN HISTORY -->
-    <div id="historySection">
-        <div class="section-label" style="margin-top: 2rem;">Recent Scans</div>
-        <div class="history-grid" id="historyGrid"></div>
-    </div>
+        <!-- RESULTS (hidden until analysis) -->
+        <div id="resultsSection" style="display:none;">
+            <div class="card result-card fade-in" id="primaryCard">
+                <div class="result-top">
+                    <div class="result-meta">
+                        <span class="result-crop-tag" id="resultPlant"></span>
+                        <h2 class="result-disease" id="resultDisease"></h2>
+                    </div>
+                    <span class="severity-pill" id="severityBadge"></span>
+                </div>
+                <div class="confidence-section">
+                    <div class="confidence-row">
+                        <span class="conf-label">AI Confidence</span>
+                        <span class="conf-value" id="confidenceVal"></span>
+                    </div>
+                    <div class="conf-track"><div class="conf-bar" id="confidenceBar"></div></div>
+                </div>
+                <div class="info-panels">
+                    <div class="info-panel panel-description">
+                        <div class="panel-label">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+                            About This Disease
+                        </div>
+                        <p id="diseaseDescription"></p>
+                    </div>
+                    <div class="info-panels-row">
+                        <div class="info-panel panel-treatment">
+                            <div class="panel-label">
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+                                Treatment
+                            </div>
+                            <p id="diseaseTreatment"></p>
+                        </div>
+                        <div class="info-panel panel-prevention">
+                            <div class="panel-label">
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                                Prevention
+                            </div>
+                            <p id="diseasePrevention"></p>
+                        </div>
+                    </div>
+                </div>
+                <div class="cure-accordion" id="cureDetails" style="display:none;">
+                    <button class="cure-accordion-trigger" id="cureDetailsToggle">
+                        <span>
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:6px; vertical-align:-2px;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+                            Full AI Cure Plan
+                        </span>
+                        <span class="cure-chevron" id="cureChevron">＋</span>
+                    </button>
+                    <div class="cure-accordion-body" id="cureDetailsBody" style="display:none;">
+                        <div class="cure-item" id="cureUrgency"></div>
+                        <div class="cure-item" id="cureRecovery"></div>
+                        <div class="cure-grid">
+                            <div class="cure-item" id="cureOrganic"></div>
+                            <div class="cure-item" id="cureChem"></div>
+                        </div>
+                        <div class="cure-item" id="cureContainment"></div>
+                        <div class="cure-prognosis" id="curePrognosis"></div>
+                    </div>
+                </div>
+                <button class="btn-ask-agribot" id="openChatFromResult" style="display:none;">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                    Ask AgriBot about this diagnosis
+                </button>
+            </div>
+            <div class="section-title">Other Possibilities</div>
+            <div class="alt-grid" id="altPredictions"></div>
+        </div>
+
+        <!-- HOW IT WORKS (shown before results) -->
+        <div class="how-it-works" id="howItWorks">
+            <div class="section-title">How It Works</div>
+            
+            <div class="image-showcase">
+                <img src="assets/img/leaf_scan.jpg" alt="Scanning a leaf in the field" class="full-width-img" />
+            </div>
+
+            <div class="steps-grid">
+                <div class="step-card">
+                    <div class="step-num">01</div>
+                    <div class="step-icon">
+                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+                    </div>
+                    <h3 class="step-title">Upload a Photo</h3>
+                    <p class="step-desc">Take a clear, well-lit photo of the diseased leaf. Both front and back work. Supports JPG, PNG, and WEBP.</p>
+                </div>
+                <div class="step-connector"></div>
+                <div class="step-card">
+                    <div class="step-num">02</div>
+                    <div class="step-icon">
+                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="4" y="4" width="16" height="16" rx="2" ry="2"/><rect x="9" y="9" width="6" height="6"/><line x1="9" y1="1" x2="9" y2="4"/><line x1="15" y1="1" x2="15" y2="4"/><line x1="9" y1="20" x2="9" y2="23"/><line x1="15" y1="20" x2="15" y2="23"/><line x1="20" y1="9" x2="23" y2="9"/><line x1="20" y1="14" x2="23" y2="14"/><line x1="1" y1="9" x2="4" y2="9"/><line x1="1" y1="14" x2="4" y2="14"/></svg>
+                    </div>
+                    <h3 class="step-title">AI Diagnosis</h3>
+                    <p class="step-desc">Our deep learning model analyzes the image and identifies the disease from 38 classes across 14 crops with confidence scores.</p>
+                </div>
+                <div class="step-connector"></div>
+                <div class="step-card">
+                    <div class="step-num">03</div>
+                    <div class="step-icon">
+                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+                    </div>
+                    <h3 class="step-title">Get Treatment</h3>
+                    <p class="step-desc">Receive a detailed cure plan including organic & chemical treatments, dosages, containment steps, and recovery timeline.</p>
+                </div>
+                <div class="step-connector"></div>
+                <div class="step-card">
+                    <div class="step-num">04</div>
+                    <div class="step-icon">
+                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                    </div>
+                    <h3 class="step-title">Chat with AgriBot</h3>
+                    <p class="step-desc">Ask AgriBot any follow-up questions about dosage, prevention, or next steps. It knows your exact diagnosis.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- COMMON DISEASES QUICK REFERENCE -->
+        <div class="diseases-section" id="diseasesSection">
+            <div class="section-title">Common Diseases We Detect</div>
+            <div class="disease-chips">
+                <div class="disease-chip chip-high">Tomato Late Blight</div>
+                <div class="disease-chip chip-med">Tomato Early Blight</div>
+                <div class="disease-chip chip-high">Potato Late Blight</div>
+                <div class="disease-chip chip-med">Corn Gray Leaf Spot</div>
+                <div class="disease-chip chip-low">Pepper Bacterial Spot</div>
+                <div class="disease-chip chip-med">Grape Black Rot</div>
+                <div class="disease-chip chip-high">Apple Scab</div>
+                <div class="disease-chip chip-med">Peach Bacterial Spot</div>
+                <div class="disease-chip chip-low">Tomato Healthy</div>
+                <div class="disease-chip chip-med">Tomato Leaf Mould</div>
+                <div class="disease-chip chip-high">Corn Northern Blight</div>
+                <div class="disease-chip chip-low">Potato Healthy</div>
+            </div>
+        </div>
+
+        <!-- TIPS -->
+        <div class="tips-section" id="tipsSection">
+            <div class="section-title">Tips for Best Results</div>
+            <div class="tips-grid">
+                <div class="tip-card">
+                    <span class="tip-icon">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+                    </span>
+                    <div>
+                        <strong>Good Lighting</strong>
+                        <p>Take photos in natural daylight. Avoid shadows falling on the leaf surface.</p>
+                    </div>
+                </div>
+                <div class="tip-card">
+                    <span class="tip-icon">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                    </span>
+                    <div>
+                        <strong>Focus on Symptoms</strong>
+                        <p>Capture the area with the most visible spots, lesions, or discoloration clearly.</p>
+                    </div>
+                </div>
+                <div class="tip-card">
+                    <span class="tip-icon">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>
+                    </span>
+                    <div>
+                        <strong>Fill the Frame</strong>
+                        <p>Hold the leaf close so it fills most of the photo for accurate classification.</p>
+                    </div>
+                </div>
+                <div class="tip-card">
+                    <span class="tip-icon">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
+                    </span>
+                    <div>
+                        <strong>No Blur</strong>
+                        <p>Keep the camera steady. A blurry image reduces the accuracy of the AI diagnosis.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </section>
+
+    <!-- ======================================================= -->
+    <!-- TAB: HISTORY                                            -->
+    <!-- ======================================================= -->
+    <section class="tab-section" id="tab-history">
+        <div class="hero-section" style="padding-bottom:0.5rem; text-align:left;">
+            <h2 class="section-heading">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:8px; vertical-align:-3px;"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                Scan History
+            </h2>
+            <p class="hero-sub" style="text-align:left;">Your leaf diagnoses from this session are saved here.</p>
+        </div>
+        <div class="history-stats" id="historyStats" style="display:none;">
+            <div class="hstat"><span id="hstatTotal">0</span><small>Total Scans</small></div>
+            <div class="hstat"><span id="hstatHealthy">0</span><small>Healthy</small></div>
+            <div class="hstat"><span id="hstatInfected">0</span><small>Infected</small></div>
+        </div>
+        <div class="history-grid" id="historyGrid">
+            <div class="history-empty">
+                <div class="history-empty-icon">
+                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+                </div>
+                <h3>No scans yet</h3>
+                <p>Go to <strong>Diagnose</strong> and analyze your first leaf to see results here.</p>
+                <button class="btn-primary" onclick="document.querySelector('[data-tab=diagnose]').click()" style="margin-top:1rem;">Start Diagnosing →</button>
+            </div>
+        </div>
+    </section>
+
+    <!-- ======================================================= -->
+    <!-- TAB: ABOUT                                              -->
+    <!-- ======================================================= -->
+    <section class="tab-section" id="tab-about">
+        
+        <div class="about-header-img" style="border-radius:var(--radius); overflow:hidden; margin-bottom: 2rem;">
+            <img src="assets/img/hero_farm.jpg" alt="Lush green farm at sunrise" style="width:100%; max-height:280px; object-fit:cover; display:block;" />
+        </div>
+
+        <div class="about-hero">
+            <div class="about-hero-badge">AgriSmart AI Technology</div>
+            <h2 class="about-hero-title">Built for Farmers.<br>Powered by Deep Learning.</h2>
+            <p class="about-hero-sub">AgriSmart AI brings enterprise-grade crop diagnostics to every farmer's pocket — completely free and available in 7 languages.</p>
+        </div>
+
+        <div class="about-features-grid">
+            <div class="card about-feat-card">
+                <div class="about-feat-icon" style="background:#e8f5e9; color:#2e7d32;">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="16" height="16" rx="2" ry="2"/><rect x="9" y="9" width="6" height="6"/><line x1="9" y1="1" x2="9" y2="4"/><line x1="15" y1="1" x2="15" y2="4"/><line x1="9" y1="20" x2="9" y2="23"/><line x1="15" y1="20" x2="15" y2="23"/><line x1="20" y1="9" x2="23" y2="9"/><line x1="20" y1="14" x2="23" y2="14"/><line x1="1" y1="9" x2="4" y2="9"/><line x1="1" y1="14" x2="4" y2="14"/></svg>
+                </div>
+                <h3>Deep Learning Model</h3>
+                <p>Our custom-trained computer vision model classifies <strong>38 diseases across 14 crop types</strong> from a single leaf photo with high confidence.</p>
+            </div>
+            <div class="card about-feat-card">
+                <div class="about-feat-icon" style="background:#e3f2fd; color:#1565c0;">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                </div>
+                <h3>AgriBot AI Advisor</h3>
+                <p>After diagnosis, AgriBot provides contextual follow-up advice — <strong>dosages, recovery timelines</strong>, and organic vs chemical treatments.</p>
+            </div>
+            <div class="card about-feat-card">
+                <div class="about-feat-icon" style="background:#fff8e1; color:#e65100;">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+                </div>
+                <h3>Multilingual Support</h3>
+                <p>Supports <strong>English, Hindi, Marathi, Tamil, Telugu, Kannada, and Gujarati</strong> so every farmer gets advice in their own language.</p>
+            </div>
+            <div class="card about-feat-card">
+                <div class="about-feat-icon" style="background:#fce4ec; color:#b71c1c;">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+                </div>
+                <h3>Instant Results</h3>
+                <p>Upload a photo and get a <strong>full disease diagnosis with confidence scores</strong> and treatment guidance in seconds — no signup needed.</p>
+            </div>
+            <div class="card about-feat-card">
+                <div class="about-feat-icon" style="background:#f3e5f5; color:#6a1b9a;">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+                </div>
+                <h3>Full Cure Plans</h3>
+                <p>Get <strong>step-by-step treatment plans</strong> including organic remedies, chemical fungicide dosages, containment steps, and recovery prognosis.</p>
+            </div>
+            <div class="card about-feat-card">
+                <div class="about-feat-icon" style="background:#e8f5e9; color:#2e7d32;">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                </div>
+                <h3>Privacy First</h3>
+                <p>Your images are processed locally on the server and <strong>not stored permanently</strong>. No account or personal data required.</p>
+            </div>
+        </div>
+
+        <!-- Crops we support -->
+        <div class="about-crops">
+            <div class="section-title">Supported Crops</div>
+            <div class="crop-tags">
+                <span class="crop-tag">Tomato</span>
+                <span class="crop-tag">Potato</span>
+                <span class="crop-tag">Corn (Maize)</span>
+                <span class="crop-tag">Apple</span>
+                <span class="crop-tag">Grape</span>
+                <span class="crop-tag">Peach</span>
+                <span class="crop-tag">Pepper</span>
+                <span class="crop-tag">Blueberry</span>
+                <span class="crop-tag">Cherry</span>
+                <span class="crop-tag">Soybean</span>
+                <span class="crop-tag">Squash</span>
+                <span class="crop-tag">Strawberry</span>
+                <span class="crop-tag">Orange</span>
+            </div>
+        </div>
+
+        <!-- Disclaimer -->
+        <div class="disclaimer-card">
+            <div class="disclaimer-icon">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+            </div>
+            <div>
+                <strong>Important Disclaimer</strong>
+                <p>AgriSmart AI is an AI-assisted diagnostic tool and should be used as a <em>first-level guide</em>. For critical crop loss situations, always consult your local Agriculture Extension Officer or Krishi Vigyan Kendra (KVK).</p>
+            </div>
+        </div>
+
+    </section>
 
 </main>
 
+<!-- FOOTER -->
+<footer class="footer">
+    <span>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:6px; vertical-align:-2px;"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+        AgriSmart AI — Intelligent Plant Health
+    </span>
+    <span>Built for modern agriculture · &copy; 2025</span>
+</footer>
+
 <!-- CAMERA MODAL -->
-<div class="modal-overlay" id="cameraModal">
-    <div class="modal">
-        <div class="modal-title">📷 Capture Leaf Image</div>
-        <button class="modal-close" id="closeCamera">✕</button>
+<div class="modal-backdrop" id="cameraModal">
+    <div class="modal-box">
+        <div class="modal-header">
+            <span>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:6px; vertical-align:-3px;"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+                Capture Leaf
+            </span>
+            <button class="modal-close-btn" id="closeCamera">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
+        </div>
         <video id="cameraVideo" autoplay playsinline></video>
-        <canvas id="cameraCanvas"></canvas>
-        <div class="modal-actions">
-            <button class="btn btn-primary" id="captureBtn" style="flex:1; justify-content:center;">📸 Capture</button>
-            <button class="btn btn-outline" id="closeCameraBtn">Cancel</button>
+        <canvas id="cameraCanvas" style="display:none;"></canvas>
+        <div class="modal-footer">
+            <button class="btn-primary" id="captureBtn" style="flex:1; justify-content:center;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:6px; vertical-align:-3px;"><circle cx="12" cy="13" r="4"/></svg>
+                Capture
+            </button>
+            <button class="btn-outline" id="closeCameraBtn">Cancel</button>
         </div>
     </div>
 </div>
 
-<!-- FOOTER -->
-<footer>
-    Built with <span>♥</span> using PyTorch ResNet-18 · AgriSmart AI &copy; 2025
-</footer>
+<!-- CHAT FAB -->
+<button class="chat-fab" id="chatBubble" title="AgriBot" style="display:none;">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+</button>
+
+<!-- CHAT PANEL -->
+<div class="chat-panel" id="chatPanel">
+    <div class="chat-header">
+        <div class="chat-header-info">
+            <div class="chat-avatar">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a10 10 0 0 1 10 10c0 5.52-4.48 10-10 10S2 17.52 2 12 6.48 2 12 2z"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>
+            </div>
+            <div>
+                <div class="chat-name">AgriBot</div>
+                <div class="chat-subtitle">AI-Powered Advisory · <span id="chatContextLabel">Analyze a leaf first</span></div>
+            </div>
+        </div>
+        <button class="chat-close" id="chatCloseBtn">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+    </div>
+    <div class="chat-messages" id="chatMessages">
+        <div class="chat-msg bot">
+            <div class="chat-bubble-msg">
+                Hi! I'm <strong>AgriBot</strong>. Once you analyze a leaf, I can answer all your follow-up questions about the disease, treatment, and prevention.
+            </div>
+        </div>
+    </div>
+    <div class="chat-footer">
+        <input type="text" id="chatInput" class="chat-input" placeholder="Ask about dosage, recovery, prevention..." />
+        <button class="chat-send" id="chatSendBtn">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+        </button>
+    </div>
+</div>
 
 <!-- SCRIPTS -->
 <script src="js/state.js"></script>
+<script src="js/tabs.js"></script>
 <script src="js/ui.js"></script>
 <script src="js/history.js"></script>
 <script src="js/camera.js"></script>
 <script src="js/api.js"></script>
+<script src="js/chat.js"></script>
 <script src="js/app.js"></script>
 </body>
 </html>

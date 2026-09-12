@@ -1,69 +1,55 @@
 """
-AgriSmart AI - Gemini Pro Agricultural Advisor Service
-Uses Google Gemini Pro to:
+AgriSmart AI - Groq Agricultural Advisor Service
+Uses Groq API to:
 1. Generate insightful, farmer-friendly descriptions of detected crop diseases.
 2. Prompt the farmer if they want a comprehensive cureness and treatment plan.
 3. Prescribe customized organic & chemical treatment plans with exact dosages and recovery timelines.
-Includes robust offline fallback to ensure 10-minute reproducibility for judges without requiring an API key.
+Includes robust offline fallback to ensure reproducibility without requiring an API key.
 """
 
 import json
-import urllib.request
-import urllib.error
 from typing import Dict, Any, Optional
 from app.config import settings
 from model.class_catalog import CLASS_METADATA
 
+try:
+    from groq import Groq
+except ImportError:
+    Groq = None
 
-class GeminiAdvisorService:
+
+class GroqAdvisorService:
     """
-    Connects to Google Gemini Pro API for agronomic disease descriptions and cure planning.
+    Connects to Groq API for agronomic disease descriptions and cure planning.
     """
 
     def __init__(self):
-        self.api_key = settings.GEMINI_API_KEY
-        self.model = settings.GEMINI_MODEL
+        self.api_key = settings.GROQ_API_KEY
+        self.model = settings.GROQ_MODEL
+        self.client = Groq(api_key=self.api_key) if Groq and self.api_key else None
 
-    def _call_gemini_pro(self, prompt: str, temperature: float = 0.4) -> Optional[str]:
+    def _call_groq(self, prompt: str, temperature: float = 0.4, is_json: bool = False) -> Optional[str]:
         """
-        Direct REST call to Gemini Pro API using standard library (zero external dependency).
+        Direct call to Groq API using the groq SDK.
         """
-        if not self.api_key:
+        if not self.client:
             return None
-
-        url = f"https://generativelanguage.googleapis.com/v1beta/models/{self.model}:generateContent?key={self.api_key}"
-        headers = {"Content-Type": "application/json"}
-        payload = {
-            "contents": [
-                {
-                    "parts": [{"text": prompt}]
-                }
-            ],
-            "generationConfig": {
-                "temperature": temperature,
-                "maxOutputTokens": 1000
-            }
-        }
 
         try:
-            req = urllib.request.Request(
-                url,
-                data=json.dumps(payload).encode("utf-8"),
-                headers=headers,
-                method="POST"
+            completion = self.client.chat.completions.create(
+                model=self.model,
+                messages=[
+                    {"role": "user", "content": prompt}
+                ],
+                temperature=temperature,
+                max_completion_tokens=1000,
+                top_p=1,
             )
-            with urllib.request.urlopen(req, timeout=12) as response:
-                result = json.loads(response.read().decode("utf-8"))
-                candidates = result.get("candidates", [])
-                if candidates:
-                    content_parts = candidates[0].get("content", {}).get("parts", [])
-                    if content_parts:
-                        return content_parts[0].get("text", "").strip()
+            content = completion.choices[0].message.content
+            return content.strip()
         except Exception as e:
-            # Fallback to offline template if API call fails or times out
+            print(f"Groq API Error: {e}")
             return None
-
-        return None
 
     def describe_disease(
         self,
@@ -91,7 +77,6 @@ class GeminiAdvisorService:
                 "ai_provider": "AgriSmart AI (Healthy Status)"
             }
 
-        # Attempt Gemini Pro generation
         prompt = (
             f"You are an expert agronomist speaking to a farmer. "
             f"The farmer's {crop} crop has been diagnosed with '{disease_name}' with {severity} severity. "
@@ -101,13 +86,12 @@ class GeminiAdvisorService:
             f"Respond in {language} language in plain, encouraging words suitable for a farmer."
         )
 
-        gemini_response = self._call_gemini_pro(prompt)
+        response = self._call_groq(prompt)
 
-        if gemini_response:
-            description_text = gemini_response
-            provider = f"Gemini Pro ({self.model})"
+        if response:
+            description_text = response
+            provider = f"Groq ({self.model})"
         else:
-            # High-fidelity grounded fallback
             meta = CLASS_METADATA.get(disease_name, {})
             precaution = meta.get("precaution", "Avoid overhead watering.")
             description_text = (
@@ -173,12 +157,11 @@ class GeminiAdvisorService:
             f"Respond ONLY with valid JSON."
         )
 
-        gemini_response = self._call_gemini_pro(prompt, temperature=0.2)
+        response = self._call_groq(prompt, temperature=0.2, is_json=True)
 
-        if gemini_response:
+        if response:
             try:
-                # Strip markdown code blocks if present
-                clean_json = gemini_response.strip()
+                clean_json = response.strip()
                 if clean_json.startswith("```json"):
                     clean_json = clean_json[7:]
                 if clean_json.startswith("```"):
@@ -190,12 +173,11 @@ class GeminiAdvisorService:
                 parsed = json.loads(clean_json)
                 parsed["disease_name"] = disease_name
                 parsed["crop"] = crop
-                parsed["ai_provider"] = f"Gemini Pro ({self.model})"
+                parsed["ai_provider"] = f"Groq ({self.model})"
                 return parsed
             except Exception:
                 pass
 
-        # Grounded fallback if Gemini API is offline or response parsing fails
         severity = meta.get("severity", "Medium")
         recovery_chance = 75.0 if severity == "High" else 88.0
         timeline = "10–14 days with intensive treatment" if severity == "High" else "5–7 days with standard treatment"
@@ -215,5 +197,74 @@ class GeminiAdvisorService:
             "ai_provider": "AgriSmart Knowledge Base (Offline Fallback)"
         }
 
+    def chat_followup(
+        self,
+        message: str,
+        disease_name: str,
+        crop: str,
+        conversation_history: list,
+        language: str = "en"
+    ) -> dict:
+        """
+        Multi-turn chatbot: answers farmer follow-up questions about their diagnosed crop.
+        Maintains conversation context using OpenAI's multi-turn message format for Groq.
+        """
+        if not self.client:
+            return {
+                "reply": (
+                    f"I'm currently in offline mode. Based on the diagnosis of {disease_name} on your {crop}, "
+                    "I recommend consulting your local agriculture extension officer for detailed advice. "
+                    "Please add a GROQ_API_KEY to your .env file to enable the live AI chatbot."
+                ),
+                "conversation_history": conversation_history
+            }
 
-gemini_advisor = GeminiAdvisorService()
+        system_context = (
+            f"You are AgriBot, a friendly and expert agricultural advisor built into AgriSmart AI. "
+            f"The farmer's {crop} plant has been diagnosed with '{disease_name}'. "
+            f"Answer their follow-up questions with practical, actionable advice. "
+            f"Be warm, concise, and use simple language a farmer can understand. "
+            f"Respond in {language} language."
+        )
+
+        messages = [
+            {"role": "system", "content": system_context},
+            {"role": "assistant", "content": "Understood! I'm ready to help answer questions about this crop diagnosis."}
+        ]
+
+        # In previous format, role was 'user'/'model'. Groq uses 'user'/'assistant'
+        for turn in conversation_history:
+            role = "assistant" if turn["role"] == "model" else turn["role"]
+            messages.append({"role": role, "content": turn["content"]})
+
+        messages.append({"role": "user", "content": message})
+
+        reply_text = None
+        try:
+            completion = self.client.chat.completions.create(
+                model=self.model,
+                messages=messages,
+                temperature=0.6,
+                max_completion_tokens=600,
+                top_p=1,
+            )
+            reply_text = completion.choices[0].message.content.strip()
+        except Exception as e:
+            print(f"Groq API Error: {e}")
+
+        if not reply_text:
+            reply_text = (
+                f"I'm having trouble connecting right now. For {disease_name} on {crop}, "
+                "the most important thing is to act quickly — remove infected leaves and apply treatment as advised."
+            )
+
+        updated_history = conversation_history + [
+            {"role": "user", "content": message},
+            {"role": "model", "content": reply_text}  # Keeping 'model' so frontend logic stays intact
+        ]
+
+        return {"reply": reply_text, "conversation_history": updated_history}
+
+
+# Instantiate the service singleton with the old name so we don't have to rewrite imports
+gemini_advisor = GroqAdvisorService()

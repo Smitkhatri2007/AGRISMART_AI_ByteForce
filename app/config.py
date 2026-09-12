@@ -43,9 +43,13 @@ class Settings:
             return self._raw_db_url.replace("postgres://", "postgresql://", 1)
         return self._raw_db_url
 
-    # Google Gemini Pro Configuration
+    # Google Gemini Pro Configuration (Deprecated, switching to Groq)
     GEMINI_API_KEY: str = os.getenv("GEMINI_API_KEY", "")
-    GEMINI_MODEL: str = os.getenv("GEMINI_MODEL", "gemini-1.5-pro")
+    GEMINI_MODEL: str = os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
+    
+    # Groq API Configuration
+    GROQ_API_KEY: str = os.getenv("GROQ_API_KEY", "")
+    GROQ_MODEL: str = os.getenv("GROQ_MODEL", "openai/gpt-oss-120b")
 
     UPLOAD_DIR: str = os.getenv("UPLOAD_DIR", "uploads")
     CORS_ORIGINS: List[str] = ["*"]

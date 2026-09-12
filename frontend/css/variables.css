@@ -1,5 +1,5 @@
 /* ==========================================================================
-   AgriSmart AI - CSS Variables, Reset & Base Styling
+   AgriSmart AI v3.0 — Variables & Reset
    ========================================================================== */
 
 *, *::before, *::after {
@@ -9,30 +9,50 @@
 }
 
 :root {
-    --bg: #09100f;
-    --surface: #101a18;
-    --surface2: #162220;
-    --border: rgba(52, 211, 153, 0.12);
-    --border-hover: rgba(52, 211, 153, 0.35);
-    --green-400: #34d399;
-    --green-500: #10b981;
-    --green-600: #059669;
-    --green-glow: rgba(52, 211, 153, 0.15);
-    --amber: #f59e0b;
-    --red: #ef4444;
-    --red-glow: rgba(239, 68, 68, 0.15);
-    --amber-glow: rgba(245, 158, 11, 0.15);
-    --text: #e2e8f0;
-    --text-muted: #64748b;
-    --text-subtle: #94a3b8;
-    --radius: 16px;
+    /* Organic Green Palette */
+    --green-50:  #f1f8e9;
+    --green-100: #dcedc8;
+    --green-200: #c8e6c9;
+    --green-300: #a5d6a7;
+    --green-400: #81c784;
+    --green-500: #4caf50;
+    --green-600: #43a047;
+    --green-700: #388e3c;
+    --green-800: #2e7d32;
+    --green-900: #1b5e20;
+
+    /* Neutrals */
+    --white:      #ffffff;
+    --bg:         #f7faf5;
+    --bg-soft:    #eef5eb;
+    --surface:    #ffffff;
+    --surface2:   #f4f8f1;
+    --border:     #dde8d8;
+    --border-med: #c5dbbf;
+
+    /* Text */
+    --text:       #1c2b1c;
+    --text-muted: #5a7060;
+    --text-soft:  #8aa48a;
+
+    /* Accent / Status */
+    --amber:      #f59e0b;
+    --amber-bg:   #fffbeb;
+    --red:        #dc2626;
+    --red-bg:     #fef2f2;
+    --orange:     #ea580c;
+
+    /* Misc */
+    --radius:    14px;
     --radius-sm: 8px;
-    --shadow: 0 4px 32px rgba(0,0,0,0.4);
+    --radius-lg: 20px;
+    --shadow-sm: 0 1px 4px rgba(46, 125, 50, 0.08);
+    --shadow:    0 4px 20px rgba(46, 125, 50, 0.1);
+    --shadow-lg: 0 8px 40px rgba(46, 125, 50, 0.15);
+    --max-w:     760px;
 }
 
-html {
-    scroll-behavior: smooth;
-}
+html { scroll-behavior: smooth; }
 
 body {
     font-family: 'Inter', sans-serif;
@@ -40,29 +60,23 @@ body {
     color: var(--text);
     min-height: 100vh;
     overflow-x: hidden;
+    line-height: 1.6;
 }
 
-/* ---- BACKGROUND EFFECTS ---- */
+/* Decorative leaf bg pattern */
 body::before {
     content: '';
     position: fixed;
-    top: -30%;
-    left: -20%;
-    width: 60vw;
-    height: 60vw;
-    background: radial-gradient(ellipse, rgba(16, 185, 129, 0.07) 0%, transparent 70%);
-    pointer-events: none;
-    z-index: 0;
+    top: 0; right: 0;
+    width: 420px; height: 420px;
+    background: radial-gradient(ellipse at top right, rgba(76, 175, 80, 0.07), transparent 70%);
+    pointer-events: none; z-index: 0;
 }
-
 body::after {
     content: '';
     position: fixed;
-    bottom: -20%;
-    right: -20%;
-    width: 50vw;
-    height: 50vw;
-    background: radial-gradient(ellipse, rgba(52, 211, 153, 0.05) 0%, transparent 70%);
-    pointer-events: none;
-    z-index: 0;
+    bottom: 0; left: 0;
+    width: 340px; height: 340px;
+    background: radial-gradient(ellipse at bottom left, rgba(129, 199, 132, 0.08), transparent 70%);
+    pointer-events: none; z-index: 0;
 }

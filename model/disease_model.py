@@ -11,8 +11,8 @@ from PIL import Image
 from model.class_catalog import CLASS_METADATA, ALL_CLASSES
 
 # Flag to switch to real trained weights when available
-USE_REAL_DISEASE_MODEL = False
-DISEASE_WEIGHTS_PATH = os.getenv("DISEASE_WEIGHTS_PATH", "model/disease_weights.pth")
+USE_REAL_DISEASE_MODEL = True
+DISEASE_WEIGHTS_PATH = os.getenv("DISEASE_WEIGHTS_PATH", "model/crop_disease_resnet18_best.pth")
 
 
 class DiseaseDetectionModel:
@@ -32,11 +32,52 @@ class DiseaseDetectionModel:
         """
         Hook for loading real PyTorch / TorchScript / ONNX disease detection model weights.
         """
-        # Example drop-in:
-        # import torch
-        # self.real_model = torch.load(DISEASE_WEIGHTS_PATH, map_location="cpu")
-        # self.real_model.eval()
-        pass
+        import torch
+        import torch.nn as nn
+        from torchvision import models, transforms
+        
+        self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+        
+        # Initialize ResNet18
+        self.real_model = models.resnet18(weights=None)
+        num_ftrs = self.real_model.fc.in_features
+        self.real_model.fc = nn.Linear(num_ftrs, self.num_classes)
+        
+        # Load weights
+        ckpt = torch.load(DISEASE_WEIGHTS_PATH, map_location=self.device)
+        if 'model_state_dict' in ckpt:
+            self.real_model.load_state_dict(ckpt['model_state_dict'])
+        else:
+            self.real_model.load_state_dict(ckpt)
+            
+        self.real_model.to(self.device)
+        self.real_model.eval()
+        
+        # Reconstruct class mapping
+        if 'class_to_idx' in ckpt:
+            self.idx_to_class = {v: k for k, v in ckpt['class_to_idx'].items()}
+        else:
+            self.idx_to_class = {i: cls for i, cls in enumerate(self.classes)}
+            
+        self.transform = transforms.Compose([
+            transforms.Resize(256),
+            transforms.CenterCrop(224),
+            transforms.ToTensor(),
+            transforms.Normalize(mean=[0.485, 0.456, 0.406],
+                                 std=[0.229, 0.224, 0.225])
+        ])
+
+    def _map_to_standard_class(self, raw_class: str) -> str:
+        """Map raw PyTorch class names to standardized ALL_CLASSES if needed"""
+        # If it matches exactly
+        if raw_class in self.classes:
+            return raw_class
+        # Otherwise do a fuzzy match (e.g. "Tomato___Late_blight" -> "Tomato Late Blight")
+        fuzzy_raw = ' '.join(raw_class.replace('_', ' ').split()).lower()
+        for std_cls in self.classes:
+            if std_cls.lower() == fuzzy_raw:
+                return std_cls
+        return raw_class
 
     def validate_image(self, image_path: str) -> Image.Image:
         """Validates that image file exists and can be decoded."""
@@ -110,7 +151,40 @@ class DiseaseDetectionModel:
         }
 
     def _run_real_inference(self, img: Image.Image, image_path: str) -> Dict[str, Any]:
-        raise NotImplementedError("Real disease model weights not plugged in yet.")
+        import torch
+        img_tensor = self.transform(img.convert('RGB')).unsqueeze(0).to(self.device)
+        
+        with torch.no_grad():
+            outputs = self.real_model(img_tensor)
+            probs = torch.nn.functional.softmax(outputs, dim=1)[0]
+            
+        top_probs, top_indices = torch.topk(probs, 3)
+        
+        top_probs = top_probs.cpu().numpy()
+        top_indices = top_indices.cpu().numpy()
+        
+        top_class_raw = self.idx_to_class[top_indices[0]]
+        top_class = self._map_to_standard_class(top_class_raw)
+        
+        metadata = CLASS_METADATA.get(top_class, {})
+        confidence = float(top_probs[0])
+        
+        top_k = []
+        for p, idx in zip(top_probs, top_indices):
+            cls_name = self._map_to_standard_class(self.idx_to_class[idx])
+            top_k.append({"class": cls_name, "probability": float(p)})
+
+        return {
+            "predicted_class": top_class,
+            "confidence": confidence,
+            "is_healthy": metadata.get("is_healthy", False),
+            "crop": metadata.get("crop", "Unknown"),
+            "disease_name": metadata.get("disease_name", "Unknown"),
+            "severity": metadata.get("severity", "Medium"),
+            "top_k": top_k,
+            "image_dimensions": {"width": img.width, "height": img.height},
+            "model_type": "Model_1_ResNet18_PyTorch"
+        }
 
 
 # Singleton instance

@@ -13,3 +13,7 @@ psycopg2-binary>=2.9.9
 # Image Processing & ML Utilities (Ready for PyTorch integration)
 pillow>=10.2.0
 numpy>=1.26.0
+torch
+torchvision
+scikit-learn
+matplotlib

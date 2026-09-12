@@ -8,7 +8,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.config import settings
 from app.database import init_db
-from app.routers import core_disease
+from app.routers import core_disease, chat
 
 
 @asynccontextmanager
@@ -41,22 +41,13 @@ app.add_middleware(
 
 # Include Routers
 app.include_router(core_disease.router)
+app.include_router(chat.router)
 
 
-@app.get("/", tags=["Health & Status"])
-def root():
-    return {
-        "status": "online",
-        "service": settings.PROJECT_NAME,
-        "version": settings.VERSION,
-        "environment": settings.ENVIRONMENT,
-        "docs_url": "/docs",
-        "contract": {
-            "cli": "python predict.py --image <path>",
-            "callable": "from model.predict import predict"
-        }
-    }
+from fastapi.staticfiles import StaticFiles
 
+# Mount the frontend directory to serve the static UI and index.html
+app.mount("/", StaticFiles(directory="frontend", html=True), name="frontend")
 
 @app.get("/health", tags=["Health & Status"])
 def health_check():

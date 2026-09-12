@@ -12,9 +12,9 @@ import argparse
 import json
 
 # Ensure current working directory / repo root is in python path
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+sys.path.insert(0, os.path.abspath(os.path.dirname(__file__)))
 
-from model.fake_engine import default_engine
+from model.disease_model import disease_model
 from app.services.gemini_service import gemini_advisor
 
 
@@ -23,7 +23,7 @@ def predict(image_path: str) -> str:
     Mandatory Submission Contract Function:
     Accepts a file path to an image and returns strictly the predicted class_label string.
     """
-    return default_engine.predict(image_path)
+    return disease_model.predict_class(image_path)
 
 
 def main():
@@ -82,7 +82,7 @@ def main():
             sys.exit(0)
 
         # Detailed analysis flow
-        detection = default_engine.predict_detailed(args.image)
+        detection = disease_model.predict_detailed(args.image)
         predicted_class = detection["predicted_class"]
         crop = detection["crop"]
         is_healthy = detection["is_healthy"]
