@@ -30,10 +30,10 @@ app = FastAPI(
     lifespan=lifespan
 )
 
-# Configure Cross-Origin Resource Sharing (CORS)
+# Configure Cross-Origin Resource Sharing (CORS) - Allow all origins (Vercel, Render, Localhost, Mobile)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=settings.CORS_ORIGINS,
+    allow_origins=["*"],
     allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -54,10 +54,20 @@ def health_check():
     }
 
 
+import os
 from fastapi.staticfiles import StaticFiles
 
-# Mount the frontend directory to serve the static UI and index.html (fallback)
-app.mount("/", StaticFiles(directory="../frontend", html=True), name="frontend")
+# Safely mount the frontend directory if present
+_candidate_frontend_dirs = [
+    os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "frontend")),
+    os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "frontend")),
+    os.path.abspath("frontend"),
+    os.path.abspath("../frontend")
+]
+for _f_dir in _candidate_frontend_dirs:
+    if os.path.isdir(_f_dir) and os.path.isfile(os.path.join(_f_dir, "index.html")):
+        app.mount("/", StaticFiles(directory=_f_dir, html=True), name="frontend")
+        break
 
 
 if __name__ == "__main__":
