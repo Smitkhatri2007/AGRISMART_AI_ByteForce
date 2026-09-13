@@ -58,6 +58,18 @@ function closeChat() {
     chatOpen = false;
 }
 
+/**
+ * Lightweight HTML sanitizer — strips script/iframe/event-handler attributes.
+ * Avoids adding a DOMPurify CDN dependency.
+ */
+function sanitizeHtml(html) {
+    return html
+        .replace(/<script[\s\S]*?<\/script>/gi, '')
+        .replace(/<iframe[\s\S]*?>/gi, '')
+        .replace(/\s+on\w+\s*=\s*(["'])[^"']*\1/gi, '')
+        .replace(/javascript:/gi, '');
+}
+
 function appendMessage(role, text, isTyping = false) {
     const div = document.createElement('div');
     div.className = `chat-msg ${role}`;
@@ -68,12 +80,13 @@ function appendMessage(role, text, isTyping = false) {
     if (isTyping) {
         bubble.innerHTML = '<div class="typing-indicator"><span></span><span></span><span></span></div>';
         div.id = 'typingIndicator';
+    } else if (role === 'user') {
+        // User content is plain text — no HTML parsing risk
+        bubble.textContent = text;
     } else {
-        if (typeof marked !== 'undefined') {
-            bubble.innerHTML = marked.parse(text);
-        } else {
-            bubble.innerHTML = text.replace(/\n/g, '<br>');
-        }
+        // Bot content may include markdown; sanitize before injecting
+        const rendered = (typeof marked !== 'undefined') ? marked.parse(text) : text.replace(/\n/g, '<br>');
+        bubble.innerHTML = sanitizeHtml(rendered);
     }
 
     div.appendChild(bubble);

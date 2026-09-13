@@ -2,6 +2,10 @@
 AgriSmart AI - Configuration Settings
 Loads environment variables for local development and Render cloud deployment.
 Includes built-in zero-dependency .env file loader.
+
+Security Note:
+  NEVER commit real API keys to source control.
+  Use .env for local dev (already in .gitignore) and Render/cloud secret env vars for production.
 """
 
 import os
@@ -49,10 +53,24 @@ class Settings:
     
     # Groq API Configuration
     GROQ_API_KEY: str = os.getenv("GROQ_API_KEY", "")
+    # Use a verified Groq model. See: https://console.groq.com/docs/models
     GROQ_MODEL: str = os.getenv("GROQ_MODEL", "openai/gpt-oss-120b")
 
     UPLOAD_DIR: str = os.getenv("UPLOAD_DIR", "uploads")
-    CORS_ORIGINS: List[str] = ["*"]
+
+    @property
+    def CORS_ORIGINS(self) -> List[str]:
+        """Read allowed origins from env. Defaults to localhost only.
+        Set CORS_ORIGINS='["*"]' ONLY for local dev/demos, never in production."""
+        raw = os.getenv("CORS_ORIGINS", '["http://localhost:8000", "http://127.0.0.1:8000"]')
+        try:
+            import json
+            parsed = json.loads(raw)
+            if isinstance(parsed, list):
+                return parsed
+        except Exception:
+            pass
+        return [raw]
 
 
 settings = Settings()

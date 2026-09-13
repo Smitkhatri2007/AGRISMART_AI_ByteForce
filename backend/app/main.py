@@ -44,11 +44,6 @@ app.include_router(core_disease.router)
 app.include_router(chat.router)
 
 
-from fastapi.staticfiles import StaticFiles
-
-# Mount the frontend directory to serve the static UI and index.html
-app.mount("/", StaticFiles(directory="../frontend", html=True), name="frontend")
-
 @app.get("/health", tags=["Health & Status"])
 def health_check():
     return {
@@ -56,6 +51,12 @@ def health_check():
         "database": "connected",
         "model_engine": "ready"
     }
+
+
+from fastapi.staticfiles import StaticFiles
+
+# Mount the frontend directory to serve the static UI and index.html (fallback)
+app.mount("/", StaticFiles(directory="../frontend", html=True), name="frontend")
 
 
 if __name__ == "__main__":

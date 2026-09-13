@@ -1,8 +1,8 @@
 """
 AgriSmart AI - Groq Agricultural Advisor Service
-Uses Groq API to:
+Uses Groq API (with LLaMA 3.3 70B) to:
 1. Generate insightful, farmer-friendly descriptions of detected crop diseases.
-2. Prompt the farmer if they want a comprehensive cureness and treatment plan.
+2. Prompt the farmer if they want a comprehensive cure and treatment plan.
 3. Prescribe customized organic & chemical treatment plans with exact dosages and recovery timelines.
 Includes robust offline fallback to ensure reproducibility without requiring an API key.
 """

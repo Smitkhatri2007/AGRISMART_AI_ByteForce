@@ -39,20 +39,8 @@ document.addEventListener('DOMContentLoaded', () => {
     updateTranslations();
 });
 
-// Translation mechanism
-function translateElement(id, key) {
-    const el = document.getElementById(id);
-    if (!el) return;
-    const lang = document.getElementById('languageSelect') ? document.getElementById('languageSelect').value : 'en';
-    const dict = window.AGRI_I18N[lang] || window.AGRI_I18N['en'];
-    if (dict && dict[key]) {
-        // If it contains SVG, don't just replace textContent unless careful, but our static ids mostly just have text or we target spans.
-        // For buttons that contain SVGs, it's safer to replace the last child text node, or just use innerHTML carefully.
-        // Actually, many of our buttons have SVG then text. Let's do a simple replace or innerHTML.
-        // Let's assume we update text safely if it doesn't break SVG. 
-    }
-}
-// We will refine translation later, let's focus on renderResults.
+// Translation is handled by updateTranslations() below.
+// translateElement() was removed (was a no-op stub).
 
 
 function severityIcon(s) {

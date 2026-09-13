@@ -26,19 +26,19 @@ class ProbabilityItem(BaseModel):
 
 
 class DiseaseDescriptionInfo(BaseModel):
-    """Gemini Pro generated disease description and cure consultation prompt"""
+    """Groq LLM generated disease description and cure consultation prompt"""
     disease_name: str
     crop: str
     status: str
-    severity: str
-    description: str = Field(..., description="Gemini Pro explanation of the disease and its impact on yield")
-    follow_up_prompt: str = Field(..., description="Gemini Pro prompt asking if the farmer wants a cure plan")
+    severity: Optional[str] = None  # May be absent for healthy plants
+    description: str = Field(..., description="AI explanation of the disease and its impact on yield")
+    follow_up_prompt: str = Field(..., description="Prompt asking if the farmer wants a cure plan")
     requires_cure: bool
     ai_provider: str
 
 
 class GeminiCurePlan(BaseModel):
-    """Gemini Pro generated step-by-step cure and recovery plan"""
+    """Groq LLM generated step-by-step cure and recovery plan"""
     disease_name: str
     crop: str
     recovery_chance_pct: float = Field(..., description="Probability of recovery with immediate treatment")
@@ -53,25 +53,27 @@ class GeminiCurePlan(BaseModel):
 
 
 class DiseasePredictionResponse(BaseModel):
-    """Complete response: CV Detection + Gemini Pro Description + Cure Prompt"""
+    """Complete response: CV Detection + Groq Description + Cure Prompt"""
     predicted_class: str
     confidence: float
     is_healthy: bool
     crop: str
     disease_name: str
     severity: str
-    top_k: List[ProbabilityItem]
-    
-    # Gemini Pro Generative Advisory
+    top_k: List[ProbabilityItem]  # Up to top-5 predictions
+
+    # Groq Generative Advisory
     disease_description: DiseaseDescriptionInfo
     cure_plan: Optional[GeminiCurePlan] = Field(
         None,
         description="Populated if the farmer confirms they want a cure (include_cure=True) or calls /cure"
     )
-    
+
     image_filename: Optional[str] = None
     saved_record_id: Optional[int] = None
-    architecture: str = "CV Leaf Classifier + Google Gemini Pro Advisory"
+    architecture: str = "DenseNet-201 (EMA + TTA) + Groq LLM Advisory"
+    tta_enabled: Optional[bool] = None
+    temperature: Optional[float] = None
 
     class Config:
         from_attributes = True

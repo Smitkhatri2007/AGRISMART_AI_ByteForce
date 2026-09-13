@@ -8,6 +8,7 @@ Ref: SIH 2026 Problem Statement 1, Page 1 (Section 3.1) & Page 3 (Section 4.1).
 """
 
 from typing import List, Optional
+import os
 from fastapi import APIRouter, Depends, UploadFile, File, Form, HTTPException, status
 from sqlalchemy.orm import Session
 from app.database import get_db
@@ -109,8 +110,19 @@ def predict_disease_by_path(
     payload: PathPredictionRequest,
     db: Session = Depends(get_db)
 ):
+    from app.config import settings
+
+    # Security: restrict path access to the configured uploads directory only
+    allowed_dir = os.path.abspath(settings.UPLOAD_DIR)
+    requested_path = os.path.abspath(payload.image_path)
+    if not requested_path.startswith(allowed_dir + os.sep) and requested_path != allowed_dir:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=f"Access denied. Path must be within the configured uploads directory."
+        )
+
     try:
-        result = disease_service.process_file_path(payload.image_path, db=db)
+        result = disease_service.process_file_path(requested_path, db=db)
         return PathPredictionResponse(class_label=result["predicted_class"])
     except FileNotFoundError as e:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))

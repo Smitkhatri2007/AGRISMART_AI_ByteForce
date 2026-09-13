@@ -9,7 +9,16 @@ function setFile(file) {
         alert('Please select a valid image file.');
         return;
     }
+    if (file.size > 10 * 1024 * 1024) {
+        alert('File is too large. Please upload an image smaller than 10MB.');
+        return;
+    }
     selectedFile = file;
+
+    // Revoke previous Blob URL to avoid memory leaks
+    if (previewImg.src && previewImg.src.startsWith('blob:')) {
+        URL.revokeObjectURL(previewImg.src);
+    }
     const url = URL.createObjectURL(file);
     previewImg.src = url;
     
@@ -48,6 +57,10 @@ function setFile(file) {
 
 function clearFile() {
     selectedFile = null;
+    // Revoke blob URL on clear
+    if (previewImg.src && previewImg.src.startsWith('blob:')) {
+        URL.revokeObjectURL(previewImg.src);
+    }
     previewImg.src = '';
     document.getElementById('diagnoseLayout').style.display = 'none';
     dropZone.style.display = 'none';

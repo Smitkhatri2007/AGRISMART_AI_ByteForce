@@ -4,6 +4,7 @@ Logs CV disease detections, Gemini Pro descriptions, and generated cure plans.
 """
 
 import datetime
+from datetime import timezone
 from sqlalchemy import Column, Integer, String, Float, Boolean, DateTime, ForeignKey, Text
 from sqlalchemy.orm import relationship
 from app.database import Base
@@ -30,6 +31,6 @@ class DiseasePrediction(Base):
     organic_treatment = Column(Text, nullable=True)
     chemical_treatment = Column(Text, nullable=True)
     
-    created_at = Column(DateTime, default=datetime.datetime.utcnow, index=True)
+    created_at = Column(DateTime, default=lambda: datetime.datetime.now(timezone.utc), index=True)
 
     farm = relationship("Farm", back_populates="diagnoses")

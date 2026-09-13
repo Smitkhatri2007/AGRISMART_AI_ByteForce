@@ -1,9 +1,9 @@
 """
-AgriSmart AI - Disease & Gemini Pro Advisory Service
+AgriSmart AI - Disease & Groq Advisory Service
 Coordinates:
 1. Computer Vision model for leaf image disease detection.
-2. Google Gemini Pro for disease explanation and cure prompt.
-3. Google Gemini Pro for on-demand cureness and recovery planning.
+2. Groq LLM for disease explanation and cure prompt.
+3. Groq LLM for on-demand cure and recovery planning.
 """
 
 import os
@@ -49,53 +49,58 @@ class DiseaseService:
         with open(saved_path, "wb") as f:
             f.write(file_bytes)
 
-        # Step 1: CV Model detection
-        detection = disease_model.predict_detailed(saved_path)
-        predicted_class = detection["predicted_class"]
-        crop = detection["crop"]
-        is_healthy = detection["is_healthy"]
-        severity = detection["severity"]
+        try:
+            # Step 1: CV Model detection
+            detection = disease_model.predict_detailed(saved_path)
+            predicted_class = detection["predicted_class"]
+            crop = detection["crop"]
+            is_healthy = detection["is_healthy"]
+            severity = detection["severity"]
 
-        # Step 2: Gemini Pro explains disease and asks if user wants cure
-        description_info = gemini_advisor.describe_disease(
-            disease_name=predicted_class,
-            crop=crop,
-            severity=severity,
-            is_healthy=is_healthy,
-            language=language
-        )
-
-        # Step 3: Optional cure generation if farmer already requested it
-        cure_plan = None
-        if include_cure:
-            cure_plan = gemini_advisor.generate_cure_plan(
+            # Step 2: Groq explains disease and asks if user wants cure
+            description_info = gemini_advisor.describe_disease(
                 disease_name=predicted_class,
                 crop=crop,
-                growth_stage=growth_stage,
+                severity=severity,
+                is_healthy=is_healthy,
                 language=language
             )
 
-        # Step 4: Database logging
-        record_id = None
-        if db is not None:
-            db_record = DiseasePrediction(
-                farm_id=farm_id,
-                image_filename=unique_filename,
-                predicted_class=predicted_class,
-                confidence=detection["confidence"],
-                is_healthy=is_healthy,
-                severity=severity,
-                disease_description=description_info["description"],
-                cure_prompt=description_info["follow_up_prompt"],
-                recovery_chance_pct=cure_plan.get("recovery_chance_pct") if cure_plan else None,
-                recovery_timeline=cure_plan.get("recovery_timeline") if cure_plan else None,
-                organic_treatment=json.dumps(cure_plan.get("organic_treatment")) if cure_plan and isinstance(cure_plan.get("organic_treatment"), (dict, list)) else cure_plan.get("organic_treatment") if cure_plan else None,
-                chemical_treatment=json.dumps(cure_plan.get("chemical_treatment")) if cure_plan and isinstance(cure_plan.get("chemical_treatment"), (dict, list)) else cure_plan.get("chemical_treatment") if cure_plan else None
-            )
-            db.add(db_record)
-            db.commit()
-            db.refresh(db_record)
-            record_id = db_record.id
+            # Step 3: Optional cure generation if farmer already requested it
+            cure_plan = None
+            if include_cure:
+                cure_plan = gemini_advisor.generate_cure_plan(
+                    disease_name=predicted_class,
+                    crop=crop,
+                    growth_stage=growth_stage,
+                    language=language
+                )
+
+            # Step 4: Database logging
+            record_id = None
+            if db is not None:
+                db_record = DiseasePrediction(
+                    farm_id=farm_id,
+                    image_filename=unique_filename,
+                    predicted_class=predicted_class,
+                    confidence=detection["confidence"],
+                    is_healthy=is_healthy,
+                    severity=severity,
+                    disease_description=description_info["description"],
+                    cure_prompt=description_info["follow_up_prompt"],
+                    recovery_chance_pct=cure_plan.get("recovery_chance_pct") if cure_plan else None,
+                    recovery_timeline=cure_plan.get("recovery_timeline") if cure_plan else None,
+                    organic_treatment=json.dumps(cure_plan.get("organic_treatment")) if cure_plan and isinstance(cure_plan.get("organic_treatment"), (dict, list)) else cure_plan.get("organic_treatment") if cure_plan else None,
+                    chemical_treatment=json.dumps(cure_plan.get("chemical_treatment")) if cure_plan and isinstance(cure_plan.get("chemical_treatment"), (dict, list)) else cure_plan.get("chemical_treatment") if cure_plan else None
+                )
+                db.add(db_record)
+                db.commit()
+                db.refresh(db_record)
+                record_id = db_record.id
+        finally:
+            # Always clean up the uploaded file from disk after inference
+            if os.path.exists(saved_path):
+                os.remove(saved_path)
 
         return {
             "predicted_class": predicted_class,
@@ -109,7 +114,9 @@ class DiseaseService:
             "cure_plan": cure_plan,
             "image_filename": unique_filename,
             "saved_record_id": record_id,
-            "architecture": "CV Leaf Classifier + Google Gemini Pro Advisory"
+            "architecture": "DenseNet-201 (EMA + TTA) + Groq LLM Advisory",
+            "tta_enabled": detection.get("tta_enabled", False),
+            "temperature": detection.get("temperature"),
         }
 
     def process_file_path(

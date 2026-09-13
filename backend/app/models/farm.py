@@ -3,6 +3,7 @@ AgriSmart AI - Farmer, Farm, and Crop ORM Entities
 """
 
 import datetime
+from datetime import timezone
 from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, Float
 from sqlalchemy.orm import relationship
 from app.database import Base
@@ -15,7 +16,7 @@ class Farmer(Base):
     name = Column(String(100), nullable=True)
     phone_number = Column(String(20), unique=True, index=True, nullable=True)
     preferred_language = Column(String(10), default="en")  # 'en', 'hi', 'mr'
-    created_at = Column(DateTime, default=datetime.datetime.utcnow)
+    created_at = Column(DateTime, default=lambda: datetime.datetime.now(timezone.utc))
 
     farms = relationship("Farm", back_populates="farmer", cascade="all, delete-orphan")
 
@@ -29,7 +30,7 @@ class Farm(Base):
     city_or_district = Column(String(100), default="General Agro-Zone", index=True)
     soil_type = Column(String(50), default="Loamy")  # Loamy, Clayey, Sandy, etc.
     water_availability = Column(String(50), default="Medium")
-    created_at = Column(DateTime, default=datetime.datetime.utcnow)
+    created_at = Column(DateTime, default=lambda: datetime.datetime.now(timezone.utc))
 
     farmer = relationship("Farmer", back_populates="farms")
     crops = relationship("Crop", back_populates="farm", cascade="all, delete-orphan")
@@ -45,6 +46,6 @@ class Crop(Base):
     growth_stage = Column(String(50), default="Growing")  # Vegetative, Flowering, Fruiting, etc.
     previous_crop = Column(String(50), nullable=True)
     status = Column(String(20), default="active")  # 'active', 'harvested'
-    planted_at = Column(DateTime, default=datetime.datetime.utcnow)
+    planted_at = Column(DateTime, default=lambda: datetime.datetime.now(timezone.utc))
 
     farm = relationship("Farm", back_populates="crops")
