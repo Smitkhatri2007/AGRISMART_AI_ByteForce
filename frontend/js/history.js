@@ -116,7 +116,7 @@ function renderHistory() {
                 <div class="history-empty-icon">🍃</div>
                 <h3 data-i18n="history_empty_title">No scans yet</h3>
                 <p data-i18n="history_empty_sub">Your scan history is securely saved on this device across sessions. Go to Diagnose and analyze your first leaf to see results here.</p>
-                <button class="btn-primary" style="margin-top:1.5rem;" onclick="document.querySelector('.nav-tab[data-tab=\\'diagnose\\']').click()">
+                <button class="btn-primary" style="margin-top:1.5rem;" onclick="window.switchTab ? window.switchTab('diagnose') : document.querySelector('.nav-tab[data-tab=\\'diagnose\\']').click()">
                     <span data-i18n="btn_start_diagnosing">Start Diagnosing →</span>
                 </button>
             </div>`;

@@ -87,6 +87,19 @@ function appendMessage(role, text, isTyping = false) {
         // Bot content may include markdown; sanitize before injecting
         const rendered = (typeof marked !== 'undefined') ? marked.parse(text) : text.replace(/\n/g, '<br>');
         bubble.innerHTML = sanitizeHtml(rendered);
+
+        // Add Text-to-Speech audio read aloud button (Bonus E)
+        const voiceBtn = document.createElement('button');
+        voiceBtn.className = 'btn-read-aloud';
+        voiceBtn.title = "Read aloud in your language";
+        voiceBtn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>`;
+        voiceBtn.onclick = (e) => {
+            e.stopPropagation();
+            if (window.voiceAssistant) {
+                window.voiceAssistant.speak(text);
+            }
+        };
+        bubble.appendChild(voiceBtn);
     }
 
     div.appendChild(bubble);
@@ -104,11 +117,6 @@ async function handleSendMessage() {
     const message = chatInput.value.trim();
     if (!message) return;
 
-    if (!currentDiagnosisContext) {
-        appendMessage('bot', '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:4px; vertical-align:-2px;"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg> Please <strong>analyze a plant image first</strong>, then I can answer follow-up questions with full disease context!');
-        return;
-    }
-
     chatInput.value = '';
     chatSendBtn.disabled = true;
     const qrContainer = document.getElementById('quickReplies');
@@ -118,11 +126,14 @@ async function handleSendMessage() {
 
     const typingEl = appendMessage('bot', '', true);
 
+    const cropContext = currentDiagnosisContext ? currentDiagnosisContext.crop : "Field Crops";
+    const diseaseContext = currentDiagnosisContext ? currentDiagnosisContext.disease_name : "General Farm Health";
+
     try {
         const result = await sendChatMessage(
             message,
-            currentDiagnosisContext.disease_name,
-            currentDiagnosisContext.crop,
+            diseaseContext,
+            cropContext,
             chatHistory
         );
         removeTypingIndicator();
@@ -139,12 +150,18 @@ async function handleSendMessage() {
 
 // Event Listeners
 chatBubble.addEventListener('click', openChat);
-chatCloseBtn.addEventListener('click', closeChat);
-
-document.getElementById('openChatFromResult').addEventListener('click', () => {
-    openChat();
-    chatMessages.scrollTop = chatMessages.scrollHeight;
+chatCloseBtn.addEventListener('click', () => {
+    closeChat();
+    if (window.voiceAssistant) window.voiceAssistant.stopSpeaking();
 });
+
+const openFromResult = document.getElementById('openChatFromResult');
+if (openFromResult) {
+    openFromResult.addEventListener('click', () => {
+        openChat();
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    });
+}
 
 chatSendBtn.addEventListener('click', handleSendMessage);
 
@@ -154,3 +171,13 @@ chatInput.addEventListener('keydown', (e) => {
         handleSendMessage();
     }
 });
+
+// Voice Microphone Button Listener (Bonus E)
+const micBtn = document.getElementById('chatMicBtn');
+if (micBtn) {
+    micBtn.addEventListener('click', () => {
+        if (window.voiceAssistant) {
+            window.voiceAssistant.toggleListen();
+        }
+    });
+}

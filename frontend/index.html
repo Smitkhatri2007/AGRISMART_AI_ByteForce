@@ -3,9 +3,18 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AgriSmart AI — Plant Disease Detection</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover">
+    <title>AgriSmart AI — Plant Disease Detection &amp; Smart Advisory</title>
     <meta name="description" content="AI-powered plant disease detection. Upload a leaf image to instantly identify diseases and get expert treatment advice from AgriBot.">
+    <meta name="theme-color" content="#1b5e20">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="AgriSmart AI">
+    <meta name="format-detection" content="telephone=no">
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" type="image/svg+xml" href="assets/icon.svg">
+    <link rel="apple-touch-icon" href="assets/icon.svg">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Playfair+Display:wght@600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/style.css">
@@ -22,6 +31,10 @@
         <button class="nav-tab active" data-tab="diagnose" data-i18n="nav_diagnose">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12h4l3-9 5 18 3-9h5"/></svg>
             Diagnose
+        </button>
+        <button class="nav-tab" data-tab="advisory" data-i18n="nav_advisory">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/><circle cx="12" cy="12" r="4"/></svg>
+            Smart Advisory
         </button>
         <button class="nav-tab" data-tab="history" data-i18n="nav_history">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
@@ -82,13 +95,13 @@
                     </h1>
                     <p class="hero-sub-fullbleed" data-i18n="hero_sub">Upload a clear photo of the affected leaf. Our deep learning model diagnoses disease instantly — AgriBot then guides you through full recovery in 7 languages.</p>
                     <div class="hero-cta-row">
-                        <button class="btn-hero-primary" onclick="document.getElementById('fileInput').click()">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-                            <span data-i18n="btn_browse">Analyze a Leaf Photo</span>
+                        <button class="btn-hero-primary" id="heroCameraBtn" type="button">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+                            <span data-i18n="btn_camera">Take Photo (Camera)</span>
                         </button>
-                        <button class="btn-hero-ghost" id="cameraBtn">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
-                            <span data-i18n="btn_camera">Use Camera</span>
+                        <button class="btn-hero-ghost" onclick="document.getElementById('fileInput').click()" type="button">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                            <span data-i18n="btn_browse">Upload from Gallery</span>
                         </button>
                     </div>
                 </div>
@@ -132,6 +145,7 @@
                     <img id="previewImg" src="" alt="Leaf preview" style="width:100%; height:auto; aspect-ratio:16/10; object-fit:cover; display:block;">
                 </div>
                 <input type="file" id="fileInput" accept="image/*" style="display:none">
+                <input type="file" id="nativeCameraInput" accept="image/*" capture="environment" style="display:none">
 
                 <!-- ANALYZE BUTTON -->
                 <button class="btn-analyze" id="analyzeBtn" disabled style="margin-top:1rem; width:100%;">
@@ -393,6 +407,293 @@
 
 
     <!-- ======================================================= -->
+    <!-- TAB: SMART ADVISORY (Bonus C, B, G)                     -->
+    <!-- ======================================================= -->
+    <section class="tab-section" id="tab-advisory">
+        <div class="section-layout">
+            
+            <!-- SMART ADVISORY HERO -->
+            <div class="advisory-hero">
+                <div class="about-hero-badge">AI Agro-Meteorology & Autonomous Advisory</div>
+                <h2 class="section-heading" style="text-align:left; font-size:2rem; margin-top:0.5rem;">Smart Farm Advisory System</h2>
+                <p class="hero-sub" style="text-align:left; max-width:750px;">Hyper-local weather forecasting, precision evapotranspiration irrigation, and autonomous agentic guidance for your field.</p>
+                
+                <!-- Farm Location Control Bar -->
+                <div class="farm-location-bar">
+                    <div class="loc-left">
+                        <span class="loc-pin">📍</span>
+                        <div>
+                            <div style="font-size:0.75rem; text-transform:uppercase; color:var(--text-muted); font-weight:600;">Active Farm Location</div>
+                            <strong id="activeLocationText" style="font-size:0.95rem; color:var(--green-900);">Detecting location...</strong>
+                        </div>
+                    </div>
+                    <div class="loc-actions">
+                        <button class="btn-sm-action" id="btnGetLocation" title="Use current GPS">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:4px; vertical-align:-2px;"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/><circle cx="12" cy="12" r="3"/></svg>
+                            Use My GPS Location
+                        </button>
+                        <select id="regionFallbackSelect" class="region-select" title="Switch Agro-Region">
+                            <option value="ahmedabad">Gujarat (Ahmedabad/Anand)</option>
+                            <option value="nashik">Maharashtra (Nashik)</option>
+                            <option value="ludhiana">Punjab (Ludhiana)</option>
+                            <option value="bengaluru">Karnataka (Bengaluru)</option>
+                            <option value="coimbatore">Tamil Nadu (Coimbatore)</option>
+                            <option value="varanasi">Uttar Pradesh (Varanasi)</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PROACTIVE AGENTIC ALERT BANNER (Bonus G) -->
+            <div class="agent-proactive-banner" id="agentProactiveBanner" style="display:none;">
+                <div class="agent-banner-inner">
+                    <div class="agent-banner-icon">⚡</div>
+                    <div class="agent-banner-content">
+                        <div style="display:flex; align-items:center; gap:8px;">
+                            <span class="status-pill pill-red" id="agentBannerBadge">CRITICAL</span>
+                            <strong id="agentBannerTitle">Autonomous Farm Action Required</strong>
+                        </div>
+                        <p id="agentBannerMsg" style="font-size:0.85rem; color:var(--text); margin-top:3px;">Evaluating cross-domain risks...</p>
+                    </div>
+                    <button class="btn-sm-action" onclick="document.getElementById('agentProactiveBanner').style.display='none'">Dismiss</button>
+                </div>
+            </div>
+
+            <!-- TWO-COLUMN ADVISORY GRID -->
+            <div class="advisory-grid">
+                
+                <!-- LEFT: WEATHER-BASED INTELLIGENCE (Bonus C) -->
+                <div class="advisory-col">
+                    <div class="advisory-card">
+                        <div class="card-header-row">
+                            <div class="card-heading">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"/></svg>
+                                <span>Weather-Based Intelligence (Bonus C)</span>
+                            </div>
+                            <span class="status-pill pill-green" style="font-size:0.7rem;">Open-Meteo Live</span>
+                        </div>
+
+                        <div id="weatherLoader" style="display:none; padding:2rem; text-align:center;">
+                            <div class="spinner"></div>
+                            <p style="font-size:0.85rem; color:var(--text-muted); margin-top:0.5rem;">Fetching live atmospheric model...</p>
+                        </div>
+
+                        <div id="weatherContent">
+                            <!-- Current Live Stats -->
+                            <div class="current-weather-box">
+                                <div class="w-main">
+                                    <span class="w-icon" id="weatherCurrentIcon">⛅</span>
+                                    <div>
+                                        <div class="w-temp" id="weatherCurrentTemp">--°C</div>
+                                        <div class="w-cond" id="weatherCurrentCond">Loading forecast...</div>
+                                    </div>
+                                </div>
+                                <div class="w-sub-metrics">
+                                    <div class="w-sub-item">
+                                        <span class="lbl">Humidity</span>
+                                        <strong id="weatherCurrentHum">--%</strong>
+                                    </div>
+                                    <div class="w-sub-item">
+                                        <span class="lbl">Wind Speed</span>
+                                        <strong id="weatherCurrentWind">-- km/h</strong>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Action 1: Irrigation Rain Delay Alert -->
+                            <div class="agro-decision-item">
+                                <div class="decision-header">
+                                    <span class="decision-title">💧 Irrigation Rain-Delay Advisory</span>
+                                    <span class="status-pill pill-green" id="advisoryRainBadge">CHECKING</span>
+                                </div>
+                                <h4 id="advisoryRainTitle" style="font-size:0.95rem; color:var(--green-900); margin:0.25rem 0;">Analyzing rain forecast...</h4>
+                                <p id="advisoryRainDetail" style="font-size:0.82rem; color:var(--text-muted);">Syncing with 48-hour precipitation models.</p>
+                            </div>
+
+                            <!-- Action 2: Chemical & Organic Spray Window -->
+                            <div class="agro-decision-item">
+                                <div class="decision-header">
+                                    <span class="decision-title">🧪 Spraying Window (Drift & Runoff Check)</span>
+                                    <span class="status-pill pill-green" id="advisorySprayBadge">OPTIMAL</span>
+                                </div>
+                                <h4 id="advisorySprayTitle" style="font-size:0.95rem; color:var(--green-900); margin:0.25rem 0;">Calculating safe spray hours...</h4>
+                                <p id="advisorySprayDetail" style="font-size:0.82rem; color:var(--text-muted);">Assessing wind speed (< 15 km/h) and rain runoff risk.</p>
+                            </div>
+
+                            <!-- Action 3: Fungal Blight Outbreak Risk -->
+                            <div class="agro-decision-item">
+                                <div class="decision-header">
+                                    <span class="decision-title">🦠 Fungal Disease Risk Index (Blight/Mildew)</span>
+                                    <span class="status-pill pill-amber" id="advisoryRiskBadge">MODERATE</span>
+                                </div>
+                                <div class="conf-track" style="margin:0.5rem 0;"><div class="conf-bar" id="advisoryRiskBar" style="width:40%; background-color:#f59e0b;"></div></div>
+                                <div style="display:flex; justify-content:space-between; font-size:0.78rem; color:var(--text-muted);">
+                                    <span>Spore Germination Risk: <strong id="advisoryRiskScore">40/100</strong></span>
+                                </div>
+                                <p id="advisoryRiskAdvice" style="font-size:0.82rem; color:var(--text-muted); margin-top:0.35rem;">Normal ventilation recommended.</p>
+                            </div>
+
+                            <!-- 5-Day Outlook -->
+                            <div style="margin-top:1.25rem;">
+                                <div style="font-size:0.75rem; text-transform:uppercase; color:var(--text-soft); font-weight:700; margin-bottom:0.5rem;">5-Day Agricultural Outlook</div>
+                                <div class="forecast-row" id="forecastRow"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- RIGHT: SMART IRRIGATION ADVISOR (Bonus B) -->
+                <div class="advisory-col">
+                    <div class="advisory-card">
+                        <div class="card-header-row">
+                            <div class="card-heading">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>
+                                <span>Smart Irrigation Advisor (Bonus B)</span>
+                            </div>
+                            <span class="status-pill pill-blue" style="font-size:0.7rem;">FAO-56 MAD Model</span>
+                        </div>
+
+                        <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:1rem;">Input your crop state and soil observation. Our engine factors upcoming rainfall to calculate exact drip duration.</p>
+
+                        <!-- Crop & Stage Form -->
+                        <div class="form-group-row">
+                            <div class="form-group-item">
+                                <label style="font-size:0.78rem; font-weight:600; color:var(--text-muted);">CROP TYPE</label>
+                                <select id="irrigationCropSelect" class="form-control-select">
+                                    <option value="Tomato">Tomato</option>
+                                    <option value="Potato">Potato</option>
+                                    <option value="Corn">Corn (Maize)</option>
+                                    <option value="Bell Pepper">Bell Pepper</option>
+                                    <option value="Grape">Grape</option>
+                                    <option value="Apple">Apple</option>
+                                </select>
+                            </div>
+                            <div class="form-group-item">
+                                <label style="font-size:0.78rem; font-weight:600; color:var(--text-muted);">SOIL TEXTURE</label>
+                                <select id="irrigationSoilSelect" class="form-control-select">
+                                    <option value="Loamy">Loamy (Balanced)</option>
+                                    <option value="Clay">Clay (High Retention)</option>
+                                    <option value="Sandy">Sandy (Rapid Drainage)</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Growth Stage Chips -->
+                        <div style="margin-top:0.75rem;">
+                            <label style="font-size:0.78rem; font-weight:600; color:var(--text-muted); display:block; margin-bottom:0.4rem;">GROWTH STAGE</label>
+                            <div class="stage-chips-row">
+                                <button type="button" class="stage-chip" data-stage="Vegetative">Vegetative</button>
+                                <button type="button" class="stage-chip active" data-stage="Flowering">Flowering ⚠️</button>
+                                <button type="button" class="stage-chip" data-stage="Fruiting">Fruiting</button>
+                                <button type="button" class="stage-chip" data-stage="Maturity">Maturity</button>
+                            </div>
+                        </div>
+
+                        <!-- Tactile Soil Moisture Slider -->
+                        <div style="margin-top:1.25rem; background:var(--bg-soft); padding:1rem; border-radius:var(--radius-sm); border:1px solid var(--border);">
+                            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.5rem;">
+                                <label style="font-size:0.8rem; font-weight:700; color:var(--green-900);">OBSERVED SOIL MOISTURE</label>
+                                <strong id="moistureValDisplay" style="font-size:1.1rem; color:var(--green-800);">30%</strong>
+                            </div>
+                            <input type="range" id="moistureSlider" min="5" max="95" value="30" class="moisture-range-slider" />
+                            <div style="display:flex; justify-content:space-between; font-size:0.72rem; color:var(--text-muted); margin-top:4px;">
+                                <span>Dry / Dusty</span>
+                                <span>Optimal Loam</span>
+                                <span>Saturated</span>
+                            </div>
+                            <div id="moistureStateLabel" style="font-size:0.8rem; font-weight:600; margin-top:6px; color:#f59e0b;">Slightly Dry (Faint subsurface moisture)</div>
+                        </div>
+
+                        <button class="btn-analyze" id="btnCalculateIrrigation" style="margin-top:1rem; width:100%;">
+                            <span>💧 Calculate Precision Irrigation</span>
+                        </button>
+
+                        <!-- Output Box -->
+                        <div class="irrigation-result-box" id="irrigationResultBox" style="display:none; margin-top:1rem;">
+                            <div style="display:flex; justify-content:space-between; align-items:center;">
+                                <strong id="irrResultTitle" style="font-size:0.95rem; color:var(--green-900);">Irrigation Directive</strong>
+                                <span class="status-pill pill-green" id="irrResultBadge">PROCEED</span>
+                            </div>
+                            <div class="irr-volume-stat" id="irrResultVolume">4.2 L/m² (~35 mins drip)</div>
+                            <p id="irrResultDetail" style="font-size:0.82rem; color:var(--text); margin-top:0.4rem; line-height:1.4;"></p>
+                            <div id="irrResultFactor" style="font-size:0.78rem; color:var(--green-800); background:#f0fdf4; padding:0.4rem 0.6rem; border-radius:6px; margin-top:0.6rem; border:1px solid #bbf7d0;"></div>
+                        </div>
+
+                    </div>
+                </div>
+
+            </div> <!-- end advisory-grid -->
+
+            <!-- FULL-WIDTH: AUTONOMOUS AGENTIC ADVISOR (Bonus G) -->
+            <div class="agentic-hub-section" style="margin-top:2rem;">
+                <div class="advisory-card">
+                    <div class="card-header-row">
+                        <div class="card-heading">
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm0 18a8 8 0 1 1 8-8 8 8 0 0 1-8 8z"/><path d="M12 6v6l4 2"/></svg>
+                            <span>Autonomous Agentic Advisor Hub (Bonus G)</span>
+                        </div>
+                        <button class="btn-hero-primary" id="btnRunAgentCycle" style="padding:0.4rem 0.9rem; font-size:0.82rem;">
+                            ⚡ Run Agentic Reasoning Cycle
+                        </button>
+                    </div>
+
+                    <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:1rem;">
+                        Our autonomous background agent continuously executes the <strong>Perceive ➔ Reason ➔ Decide ➔ Notify</strong> loop to harmonize disease treatments, weather events, and water management without requiring manual effort.
+                    </p>
+
+                    <!-- Scenario Preset Switcher -->
+                    <div class="scenario-switcher">
+                        <span style="font-size:0.75rem; font-weight:700; color:var(--text-muted); text-transform:uppercase;">Test Scenarios:</span>
+                        <button type="button" class="agent-scenario-btn active" data-scenario="blight_storm">1. Blight + Approaching Storm</button>
+                        <button type="button" class="agent-scenario-btn" data-scenario="drought_vegetative">2. Flowering + Drought Stress</button>
+                        <button type="button" class="agent-scenario-btn" data-scenario="healthy_equilibrium">3. Healthy Farm Equilibrium</button>
+                    </div>
+
+                    <!-- 4-Stage Decision Flowchart Visualizer -->
+                    <div class="loop-flowchart">
+                        <div class="loop-step-card" id="step-perceive">
+                            <div class="step-badge">STAGE 1</div>
+                            <h4>Perceive</h4>
+                            <p>Ingests Leaf Diagnosis + Live Weather + Soil Telemetry</p>
+                            <div class="step-trace-box" id="tracePerceiveList"></div>
+                        </div>
+
+                        <div class="loop-arrow">➔</div>
+
+                        <div class="loop-step-card" id="step-reason">
+                            <div class="step-badge">STAGE 2</div>
+                            <h4>Reason</h4>
+                            <p>Resolves Cross-Domain Conflicts via Groq LLM & Agronomic Rules</p>
+                            <div class="step-trace-box" id="traceReasonList"></div>
+                        </div>
+
+                        <div class="loop-arrow">➔</div>
+
+                        <div class="loop-step-card" id="step-decide">
+                            <div class="step-badge">STAGE 3</div>
+                            <h4>Decide</h4>
+                            <p>Synthesizes Synchronized Tactical Action Directives</p>
+                            <div class="step-trace-box" id="traceDecideList"></div>
+                        </div>
+
+                        <div class="loop-arrow">➔</div>
+
+                        <div class="loop-step-card" id="step-notify">
+                            <div class="step-badge">STAGE 4</div>
+                            <h4>Notify</h4>
+                            <p>Dispatches Proactive Farmer Alerts with 1-Click Action</p>
+                            <div class="step-trace-box" id="agentNotifList"></div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+        </div> <!-- end section-layout -->
+    </section>
+
+
+    <!-- ======================================================= -->
     <!-- TAB: HISTORY                                            -->
     <!-- ======================================================= -->
     <section class="tab-section" id="tab-history">
@@ -422,7 +723,7 @@
                 <div class="history-empty-icon">🍃</div>
                 <h3 data-i18n="history_empty_title">No scans yet</h3>
                 <p data-i18n="history_empty_sub">Your scan history is securely saved on this device across sessions. Go to Diagnose and analyze your first leaf to see results here.</p>
-                <button class="btn-primary" style="margin-top:1.5rem;" onclick="document.querySelector('.nav-tab[data-tab=\'diagnose\']').click()">
+                <button class="btn-primary" style="margin-top:1.5rem;" onclick="window.switchTab ? window.switchTab('diagnose') : document.querySelector('.nav-tab[data-tab=\'diagnose\']').click()">
                     <span data-i18n="btn_start_diagnosing">Start Diagnosing →</span>
                 </button>
             </div>
@@ -577,6 +878,34 @@
     </div>
 </div>
 
+<!-- ANDROID MOBILE BOTTOM NAVIGATION BAR -->
+<nav class="mobile-bottom-nav" id="mobileBottomNav" aria-label="Mobile Navigation">
+    <button class="mobile-nav-item active" data-tab="diagnose" type="button">
+        <div class="mobile-nav-icon-wrap">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12h4l3-9 5 18 3-9h5"/></svg>
+        </div>
+        <span class="mobile-nav-label" data-i18n="nav_diagnose">Diagnose</span>
+    </button>
+    <button class="mobile-nav-item" data-tab="advisory" type="button">
+        <div class="mobile-nav-icon-wrap">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/><circle cx="12" cy="12" r="4"/></svg>
+        </div>
+        <span class="mobile-nav-label" data-i18n="nav_advisory">Advisory</span>
+    </button>
+    <button class="mobile-nav-item" data-tab="history" type="button">
+        <div class="mobile-nav-icon-wrap">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        </div>
+        <span class="mobile-nav-label" data-i18n="nav_history">History</span>
+    </button>
+    <button class="mobile-nav-item" data-tab="about" type="button">
+        <div class="mobile-nav-icon-wrap">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+        </div>
+        <span class="mobile-nav-label" data-i18n="nav_about">About</span>
+    </button>
+</nav>
+
 <!-- CHAT FAB -->
 <button class="chat-fab" id="chatBubble" title="AgriBot" style="display:none;">
     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
@@ -607,8 +936,11 @@
     </div>
     <div id="quickReplies" style="display:none; padding: 0.5rem 1rem; gap: 0.5rem; overflow-x: auto; white-space: nowrap; border-top: 1px solid var(--border);"></div>
     <div class="chat-footer">
-        <input type="text" id="chatInput" class="chat-input" placeholder="Ask about dosage, recovery, prevention..." />
-        <button class="chat-send" id="chatSendBtn">
+        <input type="text" id="chatInput" class="chat-input" placeholder="Ask about dosage, weather, recovery, irrigation..." />
+        <button class="chat-mic-btn" id="chatMicBtn" type="button" title="Voice Input (Speak your question in your language)">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+        </button>
+        <button class="chat-send" id="chatSendBtn" type="button">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
         </button>
     </div>
@@ -624,6 +956,9 @@
 <script src="js/history.js"></script>
 <script src="js/camera.js"></script>
 <script src="js/api.js"></script>
+<script src="js/voice.js"></script>
+<script src="js/advisory.js"></script>
+<script src="js/agentic.js"></script>
 <script src="js/chat.js"></script>
 <script src="js/app.js"></script>
 </body>

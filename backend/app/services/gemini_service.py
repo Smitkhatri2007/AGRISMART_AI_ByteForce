@@ -236,17 +236,23 @@ class GroqAdvisorService:
             }
 
         full_lang = self.LANG_MAP.get(language, "English")
+        if disease_name and disease_name.lower() not in ["unknown", "none", ""]:
+            context_snippet = f"The farmer's {crop} plant has been diagnosed with '{disease_name}'."
+        else:
+            context_snippet = f"The farmer is managing a {crop or 'field'} crop and inquiring about crop care, weather intelligence, and smart irrigation."
+
         system_context = (
-            f"You are AgriBot, a friendly and expert agricultural advisor built into AgriSmart AI. "
-            f"The farmer's {crop} plant has been diagnosed with '{disease_name}'. "
-            f"Answer their follow-up questions with practical, actionable advice. "
-            f"Be warm, concise, and use simple language a farmer can understand. "
+            f"You are AgriBot, an expert and empathetic agricultural advisor built into AgriSmart AI. "
+            f"{context_snippet} "
+            f"You provide practical, actionable advice on plant health, chemical/organic treatment dosages, "
+            f"weather protection, and smart irrigation scheduling. "
+            f"Be warm, concise, and use simple language suitable for a farmer. "
             f"CRITICAL INSTRUCTION: You MUST respond in {full_lang}. Do not reply in English unless {full_lang} is English."
         )
 
         messages = [
             {"role": "system", "content": system_context},
-            {"role": "assistant", "content": "Understood! I'm ready to help answer questions about this crop diagnosis."}
+            {"role": "assistant", "content": "Understood! I'm ready to help with crop care, weather intelligence, and irrigation advisory."}
         ]
 
         # In previous format, role was 'user'/'model'. Groq uses 'user'/'assistant'

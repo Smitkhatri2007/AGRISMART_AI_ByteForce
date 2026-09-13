@@ -1,0 +1,20 @@
+{
+  "name": "AgriSmart AI — Plant Disease Detection & Smart Advisory",
+  "short_name": "AgriSmart AI",
+  "description": "Enterprise AI-powered plant disease detection, weather-based spray forecasting, precision irrigation advisor, and multilingual voice assistant for farmers.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f7faf5",
+  "theme_color": "#1b5e20",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "assets/icon.svg",
+      "sizes": "192x192 512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["agriculture", "productivity", "utilities"]
+}

@@ -77,11 +77,26 @@ function clearFile() {
 }
 
 
-// File Input
-fileInput.addEventListener('change', (e) => { if (e.target.files[0]) setFile(e.target.files[0]); });
-clearBtn.addEventListener('click', (e) => { e.stopPropagation(); clearFile(); });
+// File Input & Android Camera Input
+if (fileInput) fileInput.addEventListener('change', (e) => { if (e.target.files && e.target.files[0]) setFile(e.target.files[0]); });
+const nativeCameraInput = document.getElementById('nativeCameraInput');
+if (nativeCameraInput) nativeCameraInput.addEventListener('change', (e) => { if (e.target.files && e.target.files[0]) setFile(e.target.files[0]); });
+if (clearBtn) clearBtn.addEventListener('click', (e) => { e.stopPropagation(); clearFile(); });
 
-// Camera
+// Camera Triggers
+const heroCameraBtn = document.getElementById('heroCameraBtn');
+if (heroCameraBtn) {
+    heroCameraBtn.addEventListener('click', () => {
+        const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent) || window.innerWidth <= 768;
+        if (isMobile && nativeCameraInput) {
+            nativeCameraInput.click();
+        } else if (typeof startCamera === 'function') {
+            startCamera();
+        } else if (fileInput) {
+            fileInput.click();
+        }
+    });
+}
 if (cameraBtn) cameraBtn.addEventListener('click', startCamera);
 if (closeCamera) closeCamera.addEventListener('click', stopCamera);
 if (closeCameraBtn) closeCameraBtn.addEventListener('click', stopCamera);
@@ -129,5 +144,14 @@ if (typeof languageSelect !== 'undefined' && languageSelect) {
         if (selectedFile && resultsSection.style.display !== 'none') {
             analyzeBtn.click();
         }
+    });
+}
+
+// Register PWA Service Worker for offline capability & fast loading
+if ('serviceWorker' in navigator && (window.location.protocol === 'https:' || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')) {
+    window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js').catch((err) => {
+            console.log('SW registration note:', err.message);
+        });
     });
 }
