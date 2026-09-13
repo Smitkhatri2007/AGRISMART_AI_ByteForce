@@ -17,7 +17,7 @@ if os.path.exists(_env_file):
                 if line and not line.startswith("#") and "=" in line:
                     k, v = line.split("=", 1)
                     key = k.strip()
-                    val = v.strip().strip('"').strip("'")
+                    val = v.split("#")[0].strip().strip('"').strip("'")
                     # Set in os.environ if not already defined
                     if key not in os.environ:
                         os.environ[key] = val

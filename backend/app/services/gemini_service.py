@@ -22,6 +22,16 @@ class GroqAdvisorService:
     """
     Connects to Groq API for agronomic disease descriptions and cure planning.
     """
+    
+    LANG_MAP = {
+        "en": "English",
+        "hi": "Hindi",
+        "mr": "Marathi",
+        "ta": "Tamil",
+        "te": "Telugu",
+        "kn": "Kannada",
+        "gu": "Gujarati"
+    }
 
     def __init__(self):
         self.api_key = settings.GROQ_API_KEY
@@ -77,13 +87,14 @@ class GroqAdvisorService:
                 "ai_provider": "AgriSmart AI (Healthy Status)"
             }
 
+        full_lang = self.LANG_MAP.get(language, "English")
         prompt = (
             f"You are an expert agronomist speaking to a farmer. "
             f"The farmer's {crop} crop has been diagnosed with '{disease_name}' with {severity} severity. "
             f"Please provide:\n"
             f"1. A concise, clear 2-3 sentence description of this disease, what causes it (fungal/bacterial/viral), and how it affects yield.\n"
             f"2. Early signs to watch for on other leaves.\n"
-            f"Respond in {language} language in plain, encouraging words suitable for a farmer."
+            f"Respond in {full_lang} in plain, encouraging words suitable for a farmer."
         )
 
         response = self._call_groq(prompt)
@@ -142,6 +153,7 @@ class GroqAdvisorService:
                 "ai_provider": "AgriSmart AI (Healthy Maintenance)"
             }
 
+        full_lang = self.LANG_MAP.get(language, "English")
         prompt = (
             f"You are a master agricultural scientist and crop physician. "
             f"A farmer's {crop} in the '{growth_stage}' stage is suffering from '{disease_name}'. "
@@ -154,7 +166,7 @@ class GroqAdvisorService:
             f"- 'chemical_treatment': (exact chemical fungicide/bactericide and dosage in g/L, with safety withholding period)\n"
             f"- 'cultural_management': (irrigation adjustments, spacing, sanitizing tools)\n"
             f"- 'prognosis_summary': (encouraging 1-2 sentence summary for the farmer)\n"
-            f"Respond ONLY with valid JSON."
+            f"Respond ONLY with valid JSON. Ensure all text values within the JSON are translated to {full_lang}."
         )
 
         response = self._call_groq(prompt, temperature=0.2, is_json=True)
@@ -210,21 +222,26 @@ class GroqAdvisorService:
         Maintains conversation context using OpenAI's multi-turn message format for Groq.
         """
         if not self.client:
+            reply_text = (
+                f"I'm currently in offline mode. Based on the diagnosis of {disease_name} on your {crop}, "
+                "I recommend consulting your local agriculture extension officer for detailed advice. "
+                "Please add a GROQ_API_KEY to your .env file to enable the live AI chatbot."
+            )
             return {
-                "reply": (
-                    f"I'm currently in offline mode. Based on the diagnosis of {disease_name} on your {crop}, "
-                    "I recommend consulting your local agriculture extension officer for detailed advice. "
-                    "Please add a GROQ_API_KEY to your .env file to enable the live AI chatbot."
-                ),
-                "conversation_history": conversation_history
+                "reply": reply_text,
+                "conversation_history": conversation_history + [
+                    {"role": "user", "content": message},
+                    {"role": "model", "content": reply_text}
+                ]
             }
 
+        full_lang = self.LANG_MAP.get(language, "English")
         system_context = (
             f"You are AgriBot, a friendly and expert agricultural advisor built into AgriSmart AI. "
             f"The farmer's {crop} plant has been diagnosed with '{disease_name}'. "
             f"Answer their follow-up questions with practical, actionable advice. "
             f"Be warm, concise, and use simple language a farmer can understand. "
-            f"Respond in {language} language."
+            f"CRITICAL INSTRUCTION: You MUST respond in {full_lang}. Do not reply in English unless {full_lang} is English."
         )
 
         messages = [

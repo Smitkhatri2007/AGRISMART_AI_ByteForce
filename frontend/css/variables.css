@@ -49,7 +49,6 @@
     --shadow-sm: 0 1px 4px rgba(46, 125, 50, 0.08);
     --shadow:    0 4px 20px rgba(46, 125, 50, 0.1);
     --shadow-lg: 0 8px 40px rgba(46, 125, 50, 0.15);
-    --max-w:     760px;
 }
 
 html { scroll-behavior: smooth; }
@@ -59,24 +58,9 @@ body {
     background: var(--bg);
     color: var(--text);
     min-height: 100vh;
+    display: flex;
+    flex-direction: column;
     overflow-x: hidden;
     line-height: 1.6;
 }
 
-/* Decorative leaf bg pattern */
-body::before {
-    content: '';
-    position: fixed;
-    top: 0; right: 0;
-    width: 420px; height: 420px;
-    background: radial-gradient(ellipse at top right, rgba(76, 175, 80, 0.07), transparent 70%);
-    pointer-events: none; z-index: 0;
-}
-body::after {
-    content: '';
-    position: fixed;
-    bottom: 0; left: 0;
-    width: 340px; height: 340px;
-    background: radial-gradient(ellipse at bottom left, rgba(129, 199, 132, 0.08), transparent 70%);
-    pointer-events: none; z-index: 0;
-}

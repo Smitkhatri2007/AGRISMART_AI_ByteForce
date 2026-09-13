@@ -76,8 +76,17 @@ function normalizePredictionResponse(raw) {
  */
 async function fetchPrediction(file) {
     const lang = languageSelect ? languageSelect.value : 'en';
+    
+    // 2.4 Client-Side Image Compression
+    let compressedFile = file;
+    try {
+        compressedFile = await compressImage(file);
+    } catch (e) {
+        console.warn("Image compression failed, using original file", e);
+    }
+
     const formData = new FormData();
-    formData.append('image', file);
+    formData.append('image', compressedFile);
     formData.append('include_cure', 'true');
     formData.append('growth_stage', 'Growing');
     formData.append('language', lang);
@@ -124,4 +133,51 @@ async function sendChatMessage(message, diseaseName, crop, history) {
     }
 
     return await resp.json();
+}
+
+/**
+ * Client-Side Image Compression helper
+ */
+function compressImage(file, maxWidth = 1000, quality = 0.8) {
+    return new Promise((resolve, reject) => {
+        if (!file.type.startsWith('image/')) {
+            resolve(file); // Don't try to compress non-images
+            return;
+        }
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = event => {
+            const img = new Image();
+            img.src = event.target.result;
+            img.onload = () => {
+                let width = img.width;
+                let height = img.height;
+
+                if (width > maxWidth) {
+                    height = Math.round((height * maxWidth) / width);
+                    width = maxWidth;
+                }
+
+                const canvas = document.createElement('canvas');
+                canvas.width = width;
+                canvas.height = height;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, width, height);
+
+                canvas.toBlob(blob => {
+                    if (!blob) {
+                        reject(new Error('Canvas is empty'));
+                        return;
+                    }
+                    const compressedFile = new File([blob], file.name, {
+                        type: 'image/jpeg',
+                        lastModified: Date.now()
+                    });
+                    resolve(compressedFile);
+                }, 'image/jpeg', quality);
+            };
+            img.onerror = error => reject(error);
+        };
+        reader.onerror = error => reject(error);
+    });
 }

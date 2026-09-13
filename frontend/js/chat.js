@@ -17,6 +17,39 @@ function openChat() {
     chatBubble.classList.add('hidden');
     chatOpen = true;
     chatInput.focus();
+    renderQuickReplies();
+}
+
+function renderQuickReplies() {
+    const qrContainer = document.getElementById('quickReplies');
+    if (!qrContainer) return;
+    
+    // Only show if we have a context and history is empty (or just start of conversation)
+    if (!currentDiagnosisContext || chatHistory.length > 0) {
+        qrContainer.style.display = 'none';
+        return;
+    }
+
+    const lang = document.getElementById('languageSelect') ? document.getElementById('languageSelect').value : 'en';
+    const chips = {
+        'en': ['What is the exact dosage?', 'Can this spread?', 'Is the fruit safe to eat?'],
+        'hi': ['सटीक खुराक क्या है?', 'क्या यह फैल सकता है?', 'क्या फल खाने के लिए सुरक्षित है?']
+    };
+    
+    const options = chips[lang] || chips['en'];
+    qrContainer.innerHTML = '';
+    options.forEach(text => {
+        const btn = document.createElement('button');
+        btn.className = 'quick-reply-btn';
+        btn.textContent = text;
+        btn.onclick = () => {
+            chatInput.value = text;
+            handleSendMessage();
+            qrContainer.style.display = 'none';
+        };
+        qrContainer.appendChild(btn);
+    });
+    qrContainer.style.display = 'flex';
 }
 
 function closeChat() {
@@ -65,6 +98,9 @@ async function handleSendMessage() {
 
     chatInput.value = '';
     chatSendBtn.disabled = true;
+    const qrContainer = document.getElementById('quickReplies');
+    if (qrContainer) qrContainer.style.display = 'none';
+    
     appendMessage('user', message);
 
     const typingEl = appendMessage('bot', '', true);

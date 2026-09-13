@@ -51,11 +51,14 @@ async def predict_disease_image(
         )
 
     try:
-        content = await image.read()
+        content = bytearray()
+        while chunk := await image.read(1024 * 1024):
+            content.extend(chunk)
+            if len(content) > 10 * 1024 * 1024:
+                raise HTTPException(status_code=413, detail="File too large. Maximum size is 10MB.")
+        content = bytes(content)
         if len(content) == 0:
             raise HTTPException(status_code=400, detail="Uploaded file is empty.")
-        if len(content) > 10 * 1024 * 1024:
-            raise HTTPException(status_code=413, detail="File too large. Maximum size is 10MB.")
 
         result = disease_service.process_uploaded_image(
             file_bytes=content,

@@ -38,7 +38,9 @@ if not exist ".env" (
         echo.
         echo [WARNING] A new .env file was created in the backend folder.
         echo [WARNING] Please open backend\.env and add your GROQ_API_KEY for the AI features to work.
+        echo [WARNING] Exiting now so you can edit the file.
         pause
+        exit /b
     ) else (
         echo [ERROR] .env.example is missing!
     )
