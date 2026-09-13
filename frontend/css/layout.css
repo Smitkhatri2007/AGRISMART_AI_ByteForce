@@ -246,19 +246,38 @@
 
 /* ---- DIAGNOSE LAYOUT (two-column on desktop) ---- */
 .diagnose-layout {
-    width: 100%; /* Replaced max-width: 1200px to allow edge-to-edge viewport expansion */
-    padding: 2.5rem 5% 5rem; /* Switched to percentage padding for responsive edge spacing */
-    display: grid;
-    grid-template-columns: 420px 1fr;
-    gap: 3rem; /* Increased gap slightly for wider screens */
-    align-items: start;
-}
-.diagnose-left { position: sticky; top: 80px; }
-.diagnose-right { 
-    min-width: 0; 
-    max-width: 800px; /* Slightly wider to utilize the new space nicely */
-    margin: 0; /* Align left rather than floating in center of ultra-wide 1fr space */
     width: 100%;
+    max-width: 1320px;
+    margin: 0 auto;
+    padding: 2rem 1.5rem 5rem;
+    display: grid;
+    grid-template-columns: 380px minmax(0, 1fr);
+    gap: 2rem;
+    align-items: start;
+    position: relative;
+}
+
+.diagnose-left {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.5rem;
+    box-shadow: var(--shadow-sm);
+    position: sticky;
+    top: 76px;
+    z-index: 10;
+    max-height: calc(100vh - 90px);
+    overflow-y: auto;
+}
+
+.diagnose-right { 
+    min-width: 0;
+    width: 100%;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.75rem;
+    box-shadow: var(--shadow-sm);
 }
 
 /* ---- MAIN CONTENT & FOOTER ---- */
@@ -286,12 +305,22 @@
     display: none;
 }
 
-/* ---- RESPONSIVE ---- */
-@media (max-width: 960px) {
+@media (max-width: 1024px) {
     .diagnose-layout {
         grid-template-columns: 1fr;
+        padding: 1.5rem 1rem 4rem;
+        gap: 1.5rem;
     }
-    .diagnose-left { position: static; }
+    .diagnose-left {
+        position: static !important;
+        max-height: none;
+        overflow-y: visible;
+        width: 100%;
+    }
+    .diagnose-right {
+        width: 100%;
+        padding: 1.25rem;
+    }
     .hero-content { grid-template-columns: 1fr; }
     .hero-right { display: none; }
     .hero-stats-inner { grid-template-columns: repeat(2, 1fr); }

@@ -23,6 +23,7 @@ let latestWeatherData = null;
 document.addEventListener('DOMContentLoaded', () => {
     initLocationPreferences();
     initIrrigationForm();
+    initCropRecommendation();
     loadWeatherAdvisory();
 });
 
@@ -283,3 +284,118 @@ async function handleCalculateIrrigation() {
         if (calcBtn) calcBtn.disabled = false;
     }
 }
+
+// ==========================================================================
+// Crop Recommendation Matrix Engine (Bonus Module A)
+// ==========================================================================
+
+function initCropRecommendation() {
+    const phSlider = document.getElementById('cropRecPhSlider');
+    const phDisplay = document.getElementById('phValDisplay');
+    if (phSlider && phDisplay) {
+        phSlider.addEventListener('input', (e) => {
+            phDisplay.textContent = parseFloat(e.target.value).toFixed(1);
+        });
+    }
+
+    const btn = document.getElementById('btnRecommendCrops');
+    if (btn) {
+        btn.addEventListener('click', handleCropRecommendation);
+    }
+}
+
+async function handleCropRecommendation() {
+    const soilSelect = document.getElementById('cropRecSoilSelect');
+    const phSlider = document.getElementById('cropRecPhSlider');
+    const seasonSelect = document.getElementById('cropRecSeasonSelect');
+    const prevCropSelect = document.getElementById('cropRecPrevCropSelect');
+    const grid = document.getElementById('cropRecResultsGrid');
+    const btn = document.getElementById('btnRecommendCrops');
+
+    const soil = soilSelect ? soilSelect.value : 'loamy';
+    const ph = phSlider ? parseFloat(phSlider.value) : 6.5;
+    const season = seasonSelect ? seasonSelect.value : 'Kharif';
+    const prev = prevCropSelect ? prevCropSelect.value : 'None';
+
+    if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<span>⏳ Evaluating ICAR Agro-Ecological Matrix...</span>';
+    }
+
+    try {
+        const res = await window.fetchCropRecommendations({
+            soil_type: soil,
+            ph: ph,
+            season: season,
+            previous_crop: prev,
+            latitude: currentFarmLocation.lat,
+            longitude: currentFarmLocation.lon
+        });
+
+        const recList = (res && (res.recommendations || res.recommended_crops)) || [];
+        if (grid && recList.length > 0) {
+            grid.style.display = 'grid';
+            grid.innerHTML = '';
+
+            recList.forEach((item, idx) => {
+                const card = document.createElement('div');
+                card.className = 'crop-rec-card';
+                const matchPct = item.suitability_pct || item.suitability_score || 85;
+                const duration = item.duration || item.growing_duration_days || '90-110 days';
+                const waterReq = item.water_requirement_mm ? `${item.water_requirement_mm} mm` : 'Medium (350-500mm)';
+
+                card.innerHTML = `
+                    <div class="crop-rec-header">
+                        <div>
+                            <span style="font-size:0.7rem; font-weight:800; color:var(--green-700); letter-spacing:0.05em; text-transform:uppercase;">Rank #${idx + 1} Recommendation</span>
+                            <div class="crop-rec-title">${item.crop}</div>
+                        </div>
+                        <span class="crop-rec-badge">${matchPct}% Match</span>
+                    </div>
+
+                    <p style="font-size:0.8rem; color:var(--text); margin:0; line-height:1.4;">
+                        ${item.primary_rationale}
+                    </p>
+
+                    <div class="crop-rec-stats">
+                        <div class="crop-stat-item">
+                            <span class="crop-stat-lbl">OPTIMAL pH RANGE</span>
+                            <span class="crop-stat-val">${item.optimal_ph_range || '6.0 - 7.5'}</span>
+                        </div>
+                        <div class="crop-stat-item">
+                            <span class="crop-stat-lbl">WATER DEMAND</span>
+                            <span class="crop-stat-val">${waterReq}</span>
+                        </div>
+                        <div class="crop-stat-item">
+                            <span class="crop-stat-lbl">CROP DURATION</span>
+                            <span class="crop-stat-val">${duration}</span>
+                        </div>
+                        <div class="crop-stat-item">
+                            <span class="crop-stat-lbl">SUITABLE SEASON</span>
+                            <span class="crop-stat-val">${item.season || season}</span>
+                        </div>
+                    </div>
+
+                    ${item.rotation_benefit ? `
+                        <div class="crop-rotation-banner">
+                            <strong>🔄 Crop Rotation Benefit (After ${prev}):</strong><br>
+                            ${item.rotation_benefit}
+                        </div>
+                    ` : ''}
+                `;
+                grid.appendChild(card);
+            });
+
+            grid.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+    } catch (err) {
+        console.error("Crop recommendation failed:", err);
+        alert("Failed to compute crop recommendations. Please check inputs and retry.");
+    } finally {
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = '<span>🌾 Recommend Best Crops (Bonus A)</span>';
+        }
+    }
+}
+

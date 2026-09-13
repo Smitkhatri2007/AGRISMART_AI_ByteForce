@@ -45,6 +45,12 @@ function setFile(file) {
     document.getElementById('analyzeLoader').style.display = 'flex';
     resultsSection.style.display = 'none';
     
+    // Hide educational sections immediately upon file selection to prevent visual mixing
+    ['howItWorks', 'diseasesSection', 'tipsSection'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.style.display = 'none';
+    });
+
     // Scroll down to the layout
     setTimeout(() => {
         document.getElementById('diagnoseLayout').scrollIntoView({ behavior: 'smooth', block: 'start' });

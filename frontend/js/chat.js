@@ -24,8 +24,35 @@ function renderQuickReplies() {
     const qrContainer = document.getElementById('quickReplies');
     if (!qrContainer) return;
     
-    // Only show if we have a context and history is empty (or just start of conversation)
-    if (!currentDiagnosisContext || chatHistory.length > 0) {
+    // If no leaf scanned yet, show general farmer questions
+    if (!currentDiagnosisContext) {
+        if (chatHistory.length > 0) {
+            qrContainer.style.display = 'none';
+            return;
+        }
+        const generalChips = {
+            'en': ['How to protect crops from blight?', 'Check safe spray weather', 'Best crops for loamy soil?'],
+            'hi': ['फसल को झुलसा रोग से कैसे बचाएं?', 'आज छिड़काव का सही मौसम क्या है?', 'दोमट मिट्टी के लिए सर्वोत्तम फसल?']
+        };
+        const lang = document.getElementById('languageSelect') ? document.getElementById('languageSelect').value : 'en';
+        const options = generalChips[lang] || generalChips['en'];
+        qrContainer.innerHTML = '';
+        options.forEach(text => {
+            const btn = document.createElement('button');
+            btn.className = 'quick-reply-btn';
+            btn.textContent = text;
+            btn.onclick = () => {
+                chatInput.value = text;
+                handleSendMessage();
+                qrContainer.style.display = 'none';
+            };
+            qrContainer.appendChild(btn);
+        });
+        qrContainer.style.display = 'flex';
+        return;
+    }
+
+    if (chatHistory.length > 0) {
         qrContainer.style.display = 'none';
         return;
     }
@@ -149,7 +176,10 @@ async function handleSendMessage() {
 }
 
 // Event Listeners
-chatBubble.addEventListener('click', openChat);
+if (chatBubble) chatBubble.addEventListener('click', openChat);
+const navBotBtn = document.getElementById('navBotBtn');
+if (navBotBtn) navBotBtn.addEventListener('click', openChat);
+
 chatCloseBtn.addEventListener('click', () => {
     closeChat();
     if (window.voiceAssistant) window.voiceAssistant.stopSpeaking();

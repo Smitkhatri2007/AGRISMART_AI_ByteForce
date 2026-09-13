@@ -83,7 +83,16 @@ def resolve_weights_path() -> Optional[str]:
     ]
     for path in candidates:
         if path and os.path.isfile(path):
-            return os.path.abspath(path)
+            try:
+                # Check that this is a real weights file and not a Git LFS text pointer (< 1KB)
+                if os.path.getsize(path) > 1_000_000:
+                    return os.path.abspath(path)
+                else:
+                    logger.info(
+                        f"Checkpoint at '{path}' is a Git LFS text pointer ({os.path.getsize(path)} bytes), skipping."
+                    )
+            except OSError:
+                pass
     return None
 
 
@@ -124,11 +133,11 @@ class DiseaseDetectionModel:
         """
         Loads the DenseNet-201 checkpoint produced by train_plant_disease.py.
         Prefers EMA weights (ema_state) over raw model weights for better generalization.
-        Falls back gracefully to simulation mode if weights are missing.
+        Falls back gracefully to simulation mode if weights are missing or running in low-memory cloud mode.
         """
         weights_path = resolve_weights_path()
         if not weights_path:
-            logger.info("No model weights file found on disk; running in simulation/mock mode.")
+            logger.info("No full model weights file found on disk; running in lightweight cloud mode.")
             return
 
         try:

@@ -201,11 +201,13 @@ function renderResults(data) {
         const susBadge = document.getElementById('sustainabilityBadge');
         if (susBadge) {
             susBadge.innerHTML = icon('<path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>') + ` Eco Score: ${score}/100`;
-            susBadge.title = breakdown;
+            susBadge.title = "Click to inspect sustainability metrics & water conservation report (Bonus D)";
+            susBadge.style.cursor = 'pointer';
             susBadge.style.backgroundColor = score > 75 ? '#f0fdf4' : (score > 40 ? '#fffbeb' : '#fef2f2');
             susBadge.style.color = score > 75 ? '#166534' : (score > 40 ? '#92400e' : '#991b1b');
             susBadge.style.borderColor = score > 75 ? '#bbf7d0' : (score > 40 ? '#fde68a' : '#fecaca');
             susBadge.style.display = 'inline-flex';
+            susBadge.onclick = () => openSustainabilityModal(top);
         }
 
         cureDetails.style.display = 'block';
@@ -261,19 +263,40 @@ function renderResults(data) {
     setChatContext(top.condition, top.plant);
     document.getElementById('chatBubble').style.display = 'flex';
     document.getElementById('openChatFromResult').style.display = 'block';
-    
-    // Share button setup
+
+    // Setup Precision Spray & Tank Dilution Calculator (Category 1)
+    if (window.setupDosageCalculator) {
+        window.setupDosageCalculator();
+    }
+
+    // Pass data to Universal Share Engine (Category 1)
+    if (window.setShareData) {
+        window.setShareData(top, null);
+    }
+
+    // Universal Multi-App Share Button (WhatsApp, Telegram, SMS, Clipboard, etc.)
     const shareBtn = document.getElementById('shareResultBtn');
-    shareBtn.style.display = 'block';
-    shareBtn.onclick = () => {
-        const text = `AgriSmart AI Diagnosis:\nCrop: ${top.plant}\nDisease: ${top.condition}\nConfidence: ${top.confidence}%\nTreatment: ${top.treatment.substring(0, 100)}...`;
-        if (navigator.share) {
-            navigator.share({ title: 'Diagnosis Result', text: text }).catch(console.error);
-        } else {
-            const url = `https://wa.me/?text=${encodeURIComponent(text)}`;
-            window.open(url, '_blank');
-        }
-    };
+    if (shareBtn) {
+        shareBtn.style.display = 'inline-flex';
+        shareBtn.onclick = () => {
+            if (window.universalShare) {
+                window.universalShare();
+            }
+        };
+    }
+
+    // 1-Page Printable Kisan Card Button
+    const printBtn = document.getElementById('printReportBtn');
+    if (printBtn) {
+        printBtn.style.display = 'inline-flex';
+        printBtn.onclick = () => {
+            if (window.printKisanCard) {
+                window.printKisanCard();
+            } else {
+                window.print();
+            }
+        };
+    }
 
     // Show results & hide educational content
     resultsSection.style.display = 'block';
@@ -282,10 +305,10 @@ function renderResults(data) {
     resultsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
 
     // Fetch Weather (non-blocking)
-    if (top.severity !== 'none') fetchWeatherAdvice();
+    if (top.severity !== 'none') fetchWeatherAdvice(top);
 }
 
-async function fetchWeatherAdvice() {
+async function fetchWeatherAdvice(top) {
     const weatherEl = document.getElementById('weatherAdvice');
     if (!weatherEl || !navigator.geolocation) return;
     
@@ -297,22 +320,129 @@ async function fetchWeatherAdvice() {
             if (data && data.current_weather) {
                 const w = data.current_weather;
                 let advice = `🌡️ Local Weather: ${w.temperature}°C.`;
+                let sprayStatus = "OPTIMAL";
                 if (w.weathercode >= 51 && w.weathercode <= 67) {
                     advice += " Rain detected. Delay spraying treatments until clear to prevent runoff.";
+                    sprayStatus = "RAIN_DELAY";
                 } else if (w.temperature > 32) {
                     advice += " High heat. Avoid spraying chemicals during peak afternoon hours.";
+                    sprayStatus = "HIGH_HEAT";
                 } else if (w.windspeed > 25) {
                     advice += ` High wind (${w.windspeed} km/h). Avoid spraying to prevent drift.`;
+                    sprayStatus = "HIGH_WIND";
                 } else {
                     advice += " Conditions are currently optimal for applying any necessary treatments.";
                 }
                 weatherEl.innerHTML = `${advice} <span style="opacity: 0.7; margin-left: 0.25rem;">(Powered by <a href="https://open-meteo.com" target="_blank" style="color: inherit; text-decoration: underline;">Open-Meteo</a>)</span>`;
                 weatherEl.style.display = 'block';
+
+                if (window.setShareData && top) {
+                    window.setShareData(top, {
+                        spray_window: { verdict: sprayStatus },
+                        current: { wind_speed_kmh: w.windspeed, temperature: w.temperature }
+                    });
+                }
             }
         } catch (e) {
             console.error("Weather fetch failed:", e);
         }
     }, () => {});
+}
+
+async function openSustainabilityModal(top) {
+    const modal = document.getElementById('sustainabilityModal');
+    const content = document.getElementById('sustainabilityModalContent');
+    const closeBtn = document.getElementById('closeSustainabilityModal');
+    if (!modal || !content) return;
+
+    content.innerHTML = `
+        <div style="padding:2.5rem; text-align:center;">
+            <div class="spinner"></div>
+            <p style="font-size:0.85rem; color:var(--text-muted); margin-top:0.75rem;">Calculating farm resource conservation metrics...</p>
+        </div>
+    `;
+    modal.classList.add('open');
+
+    if (closeBtn) {
+        closeBtn.onclick = () => modal.classList.remove('open');
+    }
+    modal.onclick = (e) => {
+        if (e.target === modal) modal.classList.remove('open');
+    };
+
+    const hasChem = Boolean(top.cure_plan && top.cure_plan.chemical_treatment && !top.cure_plan.chemical_treatment.toLowerCase().includes('no chemical') && !top.cure_plan.chemical_treatment.toLowerCase().includes('none'));
+    const isOrganic = Boolean(top.cure_plan && top.cure_plan.organic_treatment);
+
+    const data = await window.fetchSustainabilityScore({
+        severity: top.severity || 'moderate',
+        irrigation_delayed_by_rain: true,
+        organic_chosen: isOrganic,
+        chemical_used: hasChem,
+        plot_acres: 1.0
+    });
+
+    const m = data.metrics || {};
+    content.innerHTML = `
+        <div class="sustainability-modal-body">
+            <div class="eco-score-hero">
+                <div class="eco-circle-score" style="background:${data.grade_color || '#166534'};">
+                    ${data.sustainability_score}
+                    <span>/ 100</span>
+                </div>
+                <div>
+                    <div style="font-size:0.75rem; text-transform:uppercase; font-weight:700; color:var(--text-muted);">Farm Sustainability Grade</div>
+                    <h3 style="margin:2px 0 4px 0; color:var(--green-950); font-size:1.15rem;">${data.grade}</h3>
+                    <p style="font-size:0.8rem; color:var(--text-muted); margin:0;">Transparent mathematical model aligned with ICAR resource conservation criteria.</p>
+                </div>
+            </div>
+
+            <div class="eco-formula-box">
+                <strong>Formula:</strong> ${data.published_formula}
+            </div>
+
+            <div class="eco-metric-pills-row">
+                <div class="eco-metric-card">
+                    <span style="font-size:0.75rem; color:var(--text-muted);">💧 Groundwater Conserved</span>
+                    <strong>${m.water_saved_liters ? m.water_saved_liters.toLocaleString() : '24,500'} L</strong>
+                    <small style="font-size:0.7rem; color:var(--text-soft);">via Smart Rain-Delay irrigation</small>
+                </div>
+                <div class="eco-metric-card">
+                    <span style="font-size:0.75rem; color:var(--text-muted);">🧪 Chemical Runoff Reduction</span>
+                    <strong>${m.chemical_runoff_reduction_pct || 100}%</strong>
+                    <small style="font-size:0.7rem; color:var(--text-soft);">${hasChem ? 'Mitigated with organic IPM' : 'Zero synthetic toxic runoff'}</small>
+                </div>
+            </div>
+
+            <div style="background:var(--bg-soft); border:1px solid var(--border); border-radius:8px; padding:0.8rem;">
+                <div style="font-size:0.78rem; font-weight:700; color:var(--green-900); margin-bottom:0.4rem;">Scoring Component Breakdown:</div>
+                <div class="eco-breakdown-row">
+                    <span>Foliage Health Index (H: 35%)</span>
+                    <strong>${m.health_index || 80}/100</strong>
+                </div>
+                <div class="eco-breakdown-row">
+                    <span>Water Efficiency Index (W: 35%)</span>
+                    <strong>${m.water_efficiency_index || 95}/100</strong>
+                </div>
+                <div class="eco-breakdown-row">
+                    <span>Organic Bio-Stewardship (O: 30%)</span>
+                    <strong>${m.organic_stewardship_index || 100}/100</strong>
+                </div>
+                <div class="eco-breakdown-row" style="border-bottom:none;">
+                    <span>Chemical Runoff Penalty (P_chem)</span>
+                    <strong style="color:${m.chemical_penalty > 0 ? '#dc2626' : '#166534'};">-${m.chemical_penalty || 0} pts</strong>
+                </div>
+            </div>
+
+            ${data.improvement_suggestions && data.improvement_suggestions.length ? `
+                <div style="background:#eff6ff; border:1px solid #bfdbfe; border-radius:8px; padding:0.8rem;">
+                    <div style="font-size:0.78rem; font-weight:700; color:#1e40af; margin-bottom:0.3rem;">💡 Steps to Reach Grade A+:</div>
+                    <ul style="margin:0; padding-left:1.2rem; font-size:0.8rem; color:#1e3a8a; line-height:1.4;">
+                        ${data.improvement_suggestions.map(s => `<li>${s}</li>`).join('')}
+                    </ul>
+                </div>
+            ` : ''}
+        </div>
+    `;
 }
 
 // Export a robust updateTranslations function

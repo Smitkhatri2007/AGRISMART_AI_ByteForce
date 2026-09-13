@@ -8,12 +8,18 @@ from fastapi import APIRouter, HTTPException, status, Query
 from app.services.weather_service import weather_service
 from app.services.irrigation_service import irrigation_service
 from app.services.agentic_service import agentic_service
+from app.services.crop_recommendation_service import recommend_crops
+from app.services.sustainability_service import evaluate_sustainability
 from app.schemas.advisory import (
     WeatherIntelligenceResponse,
     IrrigationRequest,
     IrrigationResponse,
     AgenticCycleRequest,
-    AgenticCycleResponse
+    AgenticCycleResponse,
+    CropRecommendationRequest,
+    CropRecommendationResponse,
+    SustainabilityEvaluateRequest,
+    SustainabilityEvaluateResponse
 )
 
 router = APIRouter(prefix="/api/v1/advisory", tags=["Smart Advisory & Autonomous Agent"])
@@ -99,3 +105,65 @@ async def evaluate_agentic_cycle(payload: AgenticCycleRequest):
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Agentic Cycle Execution Error: {str(e)}"
         )
+
+
+@router.post(
+    "/crop-recommendation",
+    response_model=CropRecommendationResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Recommend Crops based on Soil, pH & Weather (Bonus A)",
+    description="Evaluates suitability across staple crops using ICAR/FAO agro-ecological criteria."
+)
+async def get_crop_recommendations(payload: CropRecommendationRequest):
+    try:
+        # If coordinates provided and weather temperature/rain not explicitly set, fetch live weather
+        temp = payload.temperature or 26.0
+        rain = payload.rainfall_forecast_mm or 45.0
+
+        if payload.latitude and payload.longitude:
+            try:
+                w = await weather_service.get_intelligence(payload.latitude, payload.longitude)
+                temp = w["current"]["temperature"]
+                rain = w["irrigation_action"]["rain_48h_mm"] * 5  # extrapolate multi-week rainfall
+            except Exception:
+                pass
+
+        result = recommend_crops(
+            soil_type=payload.soil_type,
+            ph=payload.ph,
+            temperature=temp,
+            rainfall_forecast_mm=rain,
+            season=payload.season,
+            previous_crop=payload.previous_crop
+        )
+        return result
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Crop Recommendation Error: {str(e)}"
+        )
+
+
+@router.post(
+    "/sustainability/evaluate",
+    response_model=SustainabilityEvaluateResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Evaluate Farm Sustainability & Eco Score (Bonus D)",
+    description="Computes indicative farm sustainability score with published formula and water saving metrics."
+)
+async def get_sustainability_score(payload: SustainabilityEvaluateRequest):
+    try:
+        result = evaluate_sustainability(
+            severity=payload.severity,
+            irrigation_delayed_by_rain=payload.irrigation_delayed_by_rain,
+            organic_chosen=payload.organic_chosen,
+            chemical_used=payload.chemical_used,
+            plot_acres=payload.plot_acres
+        )
+        return result
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Sustainability Evaluation Error: {str(e)}"
+        )
+

@@ -132,3 +132,51 @@ class AgenticCycleResponse(BaseModel):
     decision_loop_trace: AgenticDecisionLoopTrace
     weather_context: Dict[str, Any]
     irrigation_context: Dict[str, Any]
+
+
+# ── Crop Recommendation Schemas (Bonus A) ──
+class CropRecommendationRequest(BaseModel):
+    soil_type: str = Field("Loamy", description="Soil texture: Loamy, Clay, Sandy, Alluvial")
+    ph: float = Field(6.5, ge=3.5, le=10.0, description="Soil pH level")
+    temperature: Optional[float] = Field(26.0, description="Current or forecast temperature °C")
+    rainfall_forecast_mm: Optional[float] = Field(45.0, description="Expected rainfall mm in coming weeks")
+    season: str = Field("Kharif", description="Season: Kharif, Rabi, Zaid")
+    previous_crop: Optional[str] = Field(None, description="Previous crop for rotation analysis")
+    latitude: Optional[float] = None
+    longitude: Optional[float] = None
+
+
+class RecommendedCropItem(BaseModel):
+    crop: str
+    suitability_pct: int
+    duration: str
+    water_requirement_mm: int
+    rotation_benefit: str
+    primary_rationale: str
+
+
+class CropRecommendationResponse(BaseModel):
+    status: str
+    data_source: str
+    input_parameters: Dict[str, Any]
+    recommendations: List[RecommendedCropItem]
+
+
+# ── Sustainability Schemas (Bonus D) ──
+class SustainabilityEvaluateRequest(BaseModel):
+    severity: str = Field("moderate", description="Disease severity: none, moderate, high, critical")
+    irrigation_delayed_by_rain: bool = Field(False, description="Whether irrigation was delayed due to rain forecast")
+    organic_chosen: bool = Field(True, description="Whether organic/biocontrol methods were selected")
+    chemical_used: bool = Field(False, description="Whether synthetic chemical fungicides were applied")
+    plot_acres: float = Field(1.0, ge=0.05, le=500.0, description="Plot size in acres")
+
+
+class SustainabilityEvaluateResponse(BaseModel):
+    sustainability_score: int
+    grade: str
+    grade_color: str
+    metrics: Dict[str, Any]
+    notes: Dict[str, str]
+    improvement_suggestions: List[str]
+    published_formula: str
+

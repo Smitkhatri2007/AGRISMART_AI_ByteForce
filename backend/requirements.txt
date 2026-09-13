@@ -10,11 +10,7 @@ httpx>=0.27.0
 sqlalchemy>=2.0.0
 psycopg2-binary>=2.9.9
 
-# Image Processing & ML Utilities (Ready for PyTorch integration)
+# Image Processing & LLM
 pillow>=10.2.0
 numpy>=1.26.0
-torch
-torchvision
-scikit-learn
-matplotlib
 groq
