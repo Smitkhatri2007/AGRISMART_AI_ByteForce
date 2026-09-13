@@ -36,7 +36,11 @@ function appendMessage(role, text, isTyping = false) {
         bubble.innerHTML = '<div class="typing-indicator"><span></span><span></span><span></span></div>';
         div.id = 'typingIndicator';
     } else {
-        bubble.innerHTML = text.replace(/\n/g, '<br>');
+        if (typeof marked !== 'undefined') {
+            bubble.innerHTML = marked.parse(text);
+        } else {
+            bubble.innerHTML = text.replace(/\n/g, '<br>');
+        }
     }
 
     div.appendChild(bubble);

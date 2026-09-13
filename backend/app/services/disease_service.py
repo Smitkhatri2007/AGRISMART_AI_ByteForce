@@ -8,6 +8,7 @@ Coordinates:
 
 import os
 import uuid
+import json
 from typing import Dict, Any, List, Optional
 from sqlalchemy.orm import Session
 from model.disease_model import disease_model
@@ -88,8 +89,8 @@ class DiseaseService:
                 cure_prompt=description_info["follow_up_prompt"],
                 recovery_chance_pct=cure_plan.get("recovery_chance_pct") if cure_plan else None,
                 recovery_timeline=cure_plan.get("recovery_timeline") if cure_plan else None,
-                organic_treatment=cure_plan.get("organic_treatment") if cure_plan else None,
-                chemical_treatment=cure_plan.get("chemical_treatment") if cure_plan else None
+                organic_treatment=json.dumps(cure_plan.get("organic_treatment")) if isinstance(cure_plan.get("organic_treatment"), (dict, list)) else cure_plan.get("organic_treatment") if cure_plan else None,
+                chemical_treatment=json.dumps(cure_plan.get("chemical_treatment")) if isinstance(cure_plan.get("chemical_treatment"), (dict, list)) else cure_plan.get("chemical_treatment") if cure_plan else None
             )
             db.add(db_record)
             db.commit()
