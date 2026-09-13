@@ -12,33 +12,28 @@ This repository contains the submission for **Problem Statement 1** of the SIH 2
 - Python 3.10+
 - A valid [Groq API Key](https://console.groq.com/keys) (Optional, but required for the AI Chatbot features)
 
-### Installation
-```bash
-# 1. Clone the repository and enter the directory
-git clone https://github.com/Smitkhatri2007/AGRISMART_AI_ByteForce.git
-cd AGRISMART_AI_ByteForce
+### First-Time Setup & Running the Web Application
+We have provided an automated setup script for Windows that will handle everything for you:
 
-# 2. Install required dependencies
-pip install -r requirements.txt
+1. Clone the repository and enter the directory:
+   ```bash
+   git clone https://github.com/Smitkhatri2007/AGRISMART_AI_ByteForce.git
+   cd AGRISMART_AI_ByteForce
+   ```
+2. Double click **`run.bat`** (or run `.\run.bat` from the terminal).
+   - This script will automatically create a virtual environment, install dependencies, and create your `.env` file.
+3. Once the `.env` file is created, the script will pause. Open `backend\.env` and insert your `GROQ_API_KEY`.
+4. Press any key in the console to continue. The server will start, and you can open `http://localhost:8000` in your web browser.
 
-# 3. Configure Environment Variables
-cp .env.example .env
-# Edit .env and insert your GROQ_API_KEY
-```
+*Note: For subsequent runs, simply double click `run.bat` again, and it will immediately start the server.*
 
 ### Running the Core Predict CLI
 As per Section 4.1, you can run the model directly from the command line on a new image:
 ```bash
+cd backend
 python predict.py --image path/to/leaf.jpg
 ```
 *This will output **only** the predicted class label string.*
-
-### Running the Web Application (Backend + Frontend)
-To run the full minimal interface (FastAPI + web UI) and interact with the GenAI features locally:
-```bash
-uvicorn app.main:app --host 0.0.0.0 --port 8000
-```
-Then open `http://localhost:8000` in your web browser.
 
 ## 3. Dataset & License
 - **Dataset:** New Plant Diseases Dataset (Augmented), derived from PlantVillage and PlantDoc.
