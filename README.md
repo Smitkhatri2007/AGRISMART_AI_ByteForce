@@ -1,7 +1,5 @@
 # AgriSmart AI - Intelligent Agriculture for a Sustainable Future
 
-This repository contains the enterprise submission for **Problem Statement 1** of the SIH 2026 Internal Hackathon.
-
 AgriSmart AI is an end-to-end precision agritech platform combining edge-optimized computer vision, hyper-local meteorological intelligence, autonomous decision-making, and conversational generative AI for smallholder farmers and commercial growers.
 
 ---
@@ -14,28 +12,28 @@ AgriSmart AI is an end-to-end precision agritech platform combining edge-optimiz
 - **Accuracy**: 98.4% local validation accuracy; handles single-leaf, multi-leaf, grayscale, and transparent RGBA formats.
 - **Offline Fallback**: Seamless client-side color-histogram and edge-gradient heuristics guarantee 100% operational uptime in remote fields without connectivity.
 
-### 🤖 Bonus Module E & AgriBot: Conversational Web AI Agronomist
+### 🤖 Module E & AgriBot: Conversational Web AI Agronomist
 - **Online Intelligence**: Powered by **Groq** (`llama-3.3-70b-versatile`) with sub-second inference speeds. Converses naturally about general farming, crop health, organic recipes, safe spray windows, and personalized disease treatment in English, Hindi, and Gujarati.
 - **Deterministic Local Dialogue Engine**: Functions fully offline without an API key or internet connection. Classifies farmer intent (greetings, identity, neem spray preparation, soil fertility, drip guidelines, chemical safety, recovery tracking) and delivers structured, agronomist-grade answers.
 - **Dynamic Quick Chips**: Context-aware suggested queries before and after leaf diagnosis.
 - **Enterprise Security**: Sanitized against DOM XSS attacks and script injection.
 
-### 🌾 Bonus Module A: Crop Recommendation Engine
+### 🌾 Module A: Crop Recommendation Engine
 - **Agronomic Grounding**: Formulated according to **ICAR** (Indian Council of Agricultural Research) & **FAO** agro-ecological guidelines.
 - **Parameters**: Evaluates soil texture (Loamy, Clay, Sandy, Alluvial, Black, Red), pH, seasonal temperature, rainfall forecast, and previous crop rotation history.
 - **Safety Gates**: Enforces biological viability gates (pH < 4.0 or > 9.5; temperatures < 5°C or > 48°C) to prevent catastrophic crop failure and prescribes precise soil conditioning (lime or gypsum amendments).
 - **Rotation Economics**: Incentivizes nitrogen-fixing legumes (Rhizobium) and penalizes monoculture cycles to eliminate pathogen buildup.
 
-### 💧 Bonus Module B: Smart Irrigation Advisor
+### 💧 Module B: Smart Irrigation Advisor
 - **Scientific Foundation**: FAO-56 Evapotranspiration & Management Allowed Depletion (MAD) models.
 - **Soil Factoring**: Dynamically adjusts runtime and water volumes for Sandy (rapid drainage), Loamy (balanced), and Clay (high retention) soils.
 - **Drought Priority Protection**: Evaluates near-wilting soil moisture (≤ 60% of critical depletion threshold) to prescribe emergency short cycles (2.5 L/m²), preventing permanent crop collapse even when rain is forecast.
 
-### 🌦️ Bonus Module C: Hyper-local Weather Intelligence
+### 🌦️ Module C: Hyper-local Weather Intelligence
 - **Open-Meteo Integration**: Real-time GPS-based weather analytics with 24-hour and 7-day precipitation forecasts, wind speeds, and relative humidity.
 - **Rain-Delay Irrigation Alert**: Automatically signals irrigation holds when natural rainfall (> 4.0 mm, ≥ 40% probability) will replenish the crop root zone, conserving vital groundwater.
 
-### 🌱 Bonus Module D: Farm Sustainability & Resource Conservation Index
+### 🌱 Module D: Farm Sustainability & Resource Conservation Index
 - **Transparent Reproducible Formula**:
   $$\text{Sustainability Score } (S) = (0.35 \times H) + (0.35 \times W) + (0.30 \times O) - P_{\text{chem}}$$
   - $H$: Crop Health Index (0–100, mapped across None/Healthy, Low, Medium, High, and Critical severity).
@@ -44,12 +42,12 @@ AgriSmart AI is an end-to-end precision agritech platform combining edge-optimiz
   - $P_{\text{chem}}$: Chemical Runoff Penalty (0–20).
 - **Impact Metrics**: Computes liters of groundwater conserved per acre cycle and chemical runoff reduction percentages.
 
-### 💊 Bonus Module F: Chemical & Organic Dosage Precision Calculator
+### 💊 Module F: Chemical & Organic Dosage Precision Calculator
 - **Dynamic Dilution Math**: Accurately computes active ingredient required for knapsack sprayers (15 L, 20 L) up to multi-acre tractor tanks.
 - **Health-Aware Logic**: Zeroes chemical dosage when crops are diagnosed healthy, promoting preventative organic maintenance instead of unnecessary pesticide costs.
 - **Safe Bounds**: Guarded against divide-by-zero, negative acreage, or null tank capacities.
 
-### 🧠 Bonus Module G: Autonomous Agentic Decision Cycle
+### 🧠 Module G: Autonomous Agentic Decision Cycle
 - **Multi-Signal Synthesis**: Synthesizes leaf pathology, 24-hour weather forecast, soil moisture, and crop phenology into a unified, actionable farm directive.
 
 ### 📲 Universal Multi-App Sharing
