@@ -1,0 +1,470 @@
+{
+  "version": "0.1",
+  "purpose": "AgriSmart AI disease explanation and management knowledge base",
+  "disclaimer": "This is decision-support information, not a guaranteed diagnosis or prescription. Product availability, registration, dosage, pre-harvest interval, and legal use vary by country/state. Do not display pesticide rates from this file; verify current local labels and agricultural-extension guidance before recommending a product.",
+  "classes": {
+    "Apple___Apple_scab": {
+      "crop": "Apple",
+      "disease": "Apple scab",
+      "cause": "Fungus (Venturia inaequalis)",
+      "symptoms": "Olive-green to brown leaf spots that darken; fruit may develop corky lesions and cracking.",
+      "management": "Remove fallen infected leaves and fruit; maintain canopy airflow; use locally approved fungicides when disease risk is high.",
+      "prevention": "Use resistant cultivars where suitable, remove leaf debris, prune for airflow, and monitor early in the season.",
+      "severity": "Moderate",
+      "sources": [
+        "https://extension.psu.edu/insects-pests-and-diseases/pest-disease-and-weed-identification/plant-disease-identification-and-control",
+        "https://apps.extension.umn.edu/garden/diagnose/plant/fruit/apple/leavesspots.html"
+      ]
+    },
+    "Apple___Black_rot": {
+      "crop": "Apple",
+      "disease": "Black rot",
+      "cause": "Fungus (Botryosphaeria obtusa)",
+      "symptoms": "Purple-bordered leaf spots with tan centers; fruit develops brown rot and may remain mummified.",
+      "management": "Remove mummified fruit and dead/cankered wood; improve orchard sanitation and use locally approved fungicides when warranted.",
+      "prevention": "Prune dead wood, remove mummies and stressed plant material, and maintain tree vigor.",
+      "severity": "Moderate",
+      "sources": [
+        "https://extension.psu.edu/insects-pests-and-diseases/pest-disease-and-weed-identification/plant-disease-identification-and-control",
+        "https://apps.extension.umn.edu/garden/diagnose/plant/fruit/apple/leavesspots.html"
+      ]
+    },
+    "Apple___Cedar_apple_rust": {
+      "crop": "Apple",
+      "disease": "Cedar-apple rust",
+      "cause": "Rust fungus (Gymnosporangium juniperi-virginianae)",
+      "symptoms": "Yellow to orange-red leaf spots, often with darker structures; fruit can develop rough spots.",
+      "management": "Use resistant cultivars where available and manage the alternate cedar/juniper host when practical; fungicides may be used according to local guidance.",
+      "prevention": "Avoid planting susceptible apple cultivars close to heavily infected cedar/juniper hosts where feasible and scout early.",
+      "severity": "Moderate",
+      "sources": [
+        "https://extension.psu.edu/insects-pests-and-diseases/pest-disease-and-weed-identification/plant-disease-identification-and-control",
+        "https://extension.umn.edu/garden-and-home/yard-and-garden/gardening-in-minnesota/yard-and-garden-problems/cedar-apple-rust"
+      ]
+    },
+    "Apple___healthy": {
+      "crop": "Apple",
+      "disease": "Healthy",
+      "cause": "None detected",
+      "symptoms": "No characteristic disease symptoms detected by the classifier.",
+      "management": "No disease treatment is indicated from this classification alone; continue routine scouting.",
+      "prevention": "Maintain balanced nutrition, appropriate irrigation, sanitation, and regular scouting.",
+      "severity": "None",
+      "sources": [
+        "Penn State Extension — Plant Diseases and Control"
+      ]
+    },
+    "Blueberry___healthy": {
+      "crop": "Blueberry",
+      "disease": "Healthy",
+      "cause": "None detected",
+      "symptoms": "No characteristic disease symptoms detected by the classifier.",
+      "management": "No disease treatment is indicated from this classification alone; continue routine scouting.",
+      "prevention": "Maintain appropriate soil conditions, irrigation, sanitation, and regular scouting.",
+      "severity": "None",
+      "sources": [
+        "Penn State Extension — Plant Diseases and Control"
+      ]
+    },
+    "Cherry_(including_sour)___Powdery_mildew": {
+      "crop": "Cherry",
+      "disease": "Powdery mildew",
+      "cause": "Fungal powdery mildew complex",
+      "symptoms": "White-gray powdery fungal growth and distorted or curled young tissue may occur.",
+      "management": "Improve airflow and canopy light; remove heavily affected material where practical; use locally approved fungicides only when needed.",
+      "prevention": "Avoid excessive canopy density and monitor susceptible new growth during favorable conditions.",
+      "severity": "Moderate",
+      "sources": [
+        "https://extension.psu.edu/insects-pests-and-diseases/pest-disease-and-weed-identification/plant-disease-identification-and-control"
+      ]
+    },
+    "Cherry_(including_sour)___healthy": {
+      "crop": "Cherry",
+      "disease": "Healthy",
+      "cause": "None detected",
+      "symptoms": "No characteristic disease symptoms detected by the classifier.",
+      "management": "No disease treatment is indicated from this classification alone; continue routine scouting.",
+      "prevention": "Maintain orchard sanitation, airflow, irrigation and regular scouting.",
+      "severity": "None",
+      "sources": [
+        "Penn State Extension — Plant Diseases and Control"
+      ]
+    },
+    "Corn_(maize)___Cercospora_leaf_spot Gray_leaf_spot": {
+      "crop": "Corn",
+      "disease": "Gray leaf spot",
+      "cause": "Fungus (Cercospora species)",
+      "symptoms": "Elongated gray to tan lesions, often becoming more noticeable on lower leaves and spreading upward.",
+      "management": "Use resistant hybrids where available; rotate crops and manage residue; consider locally recommended fungicide programs when disease risk warrants.",
+      "prevention": "Crop rotation, residue management, resistant hybrids and timely scouting help reduce risk.",
+      "severity": "Moderate",
+      "sources": [
+        "https://extension.psu.edu/insects-pests-and-diseases/pest-disease-and-weed-identification/plant-disease-identification-and-control"
+      ]
+    },
+    "Corn_(maize)___Common_rust_": {
+      "crop": "Corn",
+      "disease": "Common rust",
+      "cause": "Fungus (Puccinia sorghi)",
+      "symptoms": "Small reddish-brown to rust-colored pustules on leaves.",
+      "management": "Use resistant hybrids and monitor fields; fungicide decisions should follow local disease risk and extension guidance.",
+      "prevention": "Choose resistant varieties and scout during periods favorable for rust development.",
+      "severity": "Moderate",
+      "sources": [
+        "https://extension.psu.edu/insects-pests-and-diseases/pest-disease-and-weed-identification/plant-disease-identification-and-control"
+      ]
+    },
+    "Corn_(maize)___healthy": {
+      "crop": "Corn",
+      "disease": "Healthy",
+      "cause": "None detected",
+      "symptoms": "No characteristic disease symptoms detected by the classifier.",
+      "management": "No disease treatment is indicated from this classification alone; continue routine scouting.",
+      "prevention": "Use sound crop rotation, balanced fertility, irrigation management and scouting.",
+      "severity": "None",
+      "sources": [
+        "Penn State Extension — Plant Diseases and Control"
+      ]
+    },
+    "Corn_(maize)___Northern_Leaf_Blight": {
+      "crop": "Corn",
+      "disease": "Northern leaf blight",
+      "cause": "Fungus (Exserohilum turcicum)",
+      "symptoms": "Long, elliptical gray-green to tan lesions that can enlarge and coalesce.",
+      "management": "Use resistant hybrids; rotate crops and manage residue; fungicides may be considered according to local risk and label directions.",
+      "prevention": "Resistant hybrids, rotation, residue management and timely scouting reduce disease pressure.",
+      "severity": "Moderate",
+      "sources": [
+        "https://extension.psu.edu/insects-pests-and-diseases/pest-disease-and-weed-identification/plant-disease-identification-and-control"
+      ]
+    },
+    "Grape___Black_rot": {
+      "crop": "Grape",
+      "disease": "Black rot",
+      "cause": "Fungus (Guignardia bidwellii)",
+      "symptoms": "Brown circular leaf lesions may develop; berries can turn brown and become shriveled black mummies.",
+      "management": "Remove mummified berries and infected tissue; maintain canopy airflow and use locally approved fungicides when disease risk is high.",
+      "prevention": "Sanitation, pruning for airflow and early-season scouting are important.",
+      "severity": "Moderate",
+      "sources": [
+        "https://extension.psu.edu/insects-pests-and-diseases/pest-disease-and-weed-identification/plant-disease-identification-and-control"
+      ]
+    },
+    "Grape___Esca_(Black_Measles)": {
+      "crop": "Grape",
+      "disease": "Esca (Black measles)",
+      "cause": "Complex of grapevine trunk pathogens",
+      "symptoms": "Leaf striping or spotting and fruit symptoms can occur; trunk disease may cause progressive decline.",
+      "management": "Remove or manage affected vines according to local vineyard pathology guidance; avoid spreading infected pruning material.",
+      "prevention": "Use clean propagation material, sanitize pruning tools, and manage trunk wounds carefully.",
+      "severity": "Moderate",
+      "sources": [
+        "https://extension.psu.edu/insects-pests-and-diseases/pest-disease-and-weed-identification/plant-disease-identification-and-control"
+      ]
+    },
+    "Grape___healthy": {
+      "crop": "Grape",
+      "disease": "Healthy",
+      "cause": "None detected",
+      "symptoms": "No characteristic disease symptoms detected by the classifier.",
+      "management": "No disease treatment is indicated from this classification alone; continue routine scouting.",
+      "prevention": "Maintain canopy airflow, sanitation, balanced nutrition and regular scouting.",
+      "severity": "None",
+      "sources": [
+        "Penn State Extension — Plant Diseases and Control"
+      ]
+    },
+    "Grape___Leaf_blight_(Isariopsis_Leaf_Spot)": {
+      "crop": "Grape",
+      "disease": "Leaf blight (Isariopsis leaf spot)",
+      "cause": "Fungal leaf-spot disease",
+      "symptoms": "Leaf spots can enlarge and cause blighting or premature loss of foliage.",
+      "management": "Remove infected debris where practical; improve airflow and follow locally approved fungicide guidance if disease pressure is significant.",
+      "prevention": "Canopy sanitation, airflow and regular scouting help reduce disease pressure.",
+      "severity": "Moderate",
+      "sources": [
+        "https://extension.psu.edu/insects-pests-and-diseases/pest-disease-and-weed-identification/plant-disease-identification-and-control"
+      ]
+    },
+    "Orange___Haunglongbing_(Citrus_greening)": {
+      "crop": "Orange",
+      "disease": "Huanglongbing (citrus greening)",
+      "cause": "Bacterium associated with Candidatus Liberibacter; spread by psyllids",
+      "symptoms": "Blotchy leaf mottling, yellowing, twig decline and poor or misshapen fruit can occur.",
+      "management": "There is no simple curative treatment for an infected tree; confirm diagnosis with an appropriate diagnostic service and follow regional citrus HLB/vector management programs.",
+      "prevention": "Use certified disease-free planting material and manage the vector according to regional recommendations.",
+      "severity": "High",
+      "sources": [
+        "https://extension.psu.edu/insects-pests-and-diseases/pest-disease-and-weed-identification/plant-disease-identification-and-control"
+      ]
+    },
+    "Peach___Bacterial_spot": {
+      "crop": "Peach",
+      "disease": "Bacterial spot",
+      "cause": "Bacterium (Xanthomonas species complex)",
+      "symptoms": "Small water-soaked or dark leaf spots; fruit may develop sunken lesions.",
+      "management": "Use resistant/tolerant cultivars where available, improve sanitation and follow locally approved bactericide programs when warranted.",
+      "prevention": "Use healthy planting material, avoid unnecessary wetting of foliage, maintain orchard sanitation and scout regularly.",
+      "severity": "Moderate",
+      "sources": [
+        "https://extension.psu.edu/insects-pests-and-diseases/pest-disease-and-weed-identification/plant-disease-identification-and-control"
+      ]
+    },
+    "Peach___healthy": {
+      "crop": "Peach",
+      "disease": "Healthy",
+      "cause": "None detected",
+      "symptoms": "No characteristic disease symptoms detected by the classifier.",
+      "management": "No disease treatment is indicated from this classification alone; continue routine scouting.",
+      "prevention": "Maintain orchard sanitation, airflow, irrigation and balanced nutrition.",
+      "severity": "None",
+      "sources": [
+        "Penn State Extension — Plant Diseases and Control"
+      ]
+    },
+    "Pepper,_bell___Bacterial_spot": {
+      "crop": "Pepper",
+      "disease": "Bacterial spot",
+      "cause": "Bacterium (Xanthomonas species complex)",
+      "symptoms": "Small water-soaked to dark leaf spots; lesions can merge and cause defoliation.",
+      "management": "Use disease-free seed/transplants, avoid overhead irrigation, rotate crops and follow locally approved copper/bactericide guidance when appropriate.",
+      "prevention": "Use clean seed/transplants, sanitation, crop rotation and avoid working plants when foliage is wet.",
+      "severity": "Moderate",
+      "sources": [
+        "https://extension.psu.edu/insects-pests-and-diseases/pest-disease-and-weed-identification/plant-disease-identification-and-control",
+        "https://ipm.ucanr.edu/agriculture/tomato/bacterial-spot/"
+      ]
+    },
+    "Pepper,_bell___healthy": {
+      "crop": "Pepper",
+      "disease": "Healthy",
+      "cause": "None detected",
+      "symptoms": "No characteristic disease symptoms detected by the classifier.",
+      "management": "No disease treatment is indicated from this classification alone; continue routine scouting.",
+      "prevention": "Maintain balanced fertility, irrigation, sanitation and regular scouting.",
+      "severity": "None",
+      "sources": [
+        "Penn State Extension — Plant Diseases and Control"
+      ]
+    },
+    "Potato___Early_blight": {
+      "crop": "Potato",
+      "disease": "Early blight",
+      "cause": "Fungus (Alternaria species)",
+      "symptoms": "Dark leaf lesions often develop concentric rings; older leaves are commonly affected first.",
+      "management": "Remove volunteer hosts and infected debris where feasible; maintain plant vigor and use locally approved fungicides when disease risk warrants.",
+      "prevention": "Crop rotation, sanitation, balanced nutrition and regular scouting reduce risk.",
+      "severity": "Moderate",
+      "sources": [
+        "https://extension.psu.edu/insects-pests-and-diseases/pest-disease-and-weed-identification/plant-disease-identification-and-control"
+      ]
+    },
+    "Potato___healthy": {
+      "crop": "Potato",
+      "disease": "Healthy",
+      "cause": "None detected",
+      "symptoms": "No characteristic disease symptoms detected by the classifier.",
+      "management": "No disease treatment is indicated from this classification alone; continue routine scouting.",
+      "prevention": "Use healthy seed, crop rotation, sanitation and regular scouting.",
+      "severity": "None",
+      "sources": [
+        "Penn State Extension — Plant Diseases and Control"
+      ]
+    },
+    "Potato___Late_blight": {
+      "crop": "Potato",
+      "disease": "Late blight",
+      "cause": "Oomycete (Phytophthora infestans)",
+      "symptoms": "Water-soaked or dark lesions can expand rapidly; humid conditions can promote sporulation.",
+      "management": "Act quickly after confirmation; remove infected volunteer plants and follow local late-blight forecasting and approved fungicide programs.",
+      "prevention": "Use certified seed, resistant/tolerant varieties where available, field sanitation and disease forecasting.",
+      "severity": "High",
+      "sources": [
+        "https://extension.psu.edu/insects-pests-and-diseases/pest-disease-and-weed-identification/plant-disease-identification-and-control"
+      ]
+    },
+    "Raspberry___healthy": {
+      "crop": "Raspberry",
+      "disease": "Healthy",
+      "cause": "None detected",
+      "symptoms": "No characteristic disease symptoms detected by the classifier.",
+      "management": "No disease treatment is indicated from this classification alone; continue routine scouting.",
+      "prevention": "Maintain cane sanitation, airflow, irrigation management and regular scouting.",
+      "severity": "None",
+      "sources": [
+        "Penn State Extension — Plant Diseases and Control"
+      ]
+    },
+    "Soybean___healthy": {
+      "crop": "Soybean",
+      "disease": "Healthy",
+      "cause": "None detected",
+      "symptoms": "No characteristic disease symptoms detected by the classifier.",
+      "management": "No disease treatment is indicated from this classification alone; continue routine scouting.",
+      "prevention": "Use quality seed, suitable varieties, crop rotation, balanced fertility and regular scouting.",
+      "severity": "None",
+      "sources": [
+        "Penn State Extension — Plant Diseases and Control"
+      ]
+    },
+    "Squash___Powdery_mildew": {
+      "crop": "Squash",
+      "disease": "Powdery mildew",
+      "cause": "Powdery mildew fungi",
+      "symptoms": "White powdery growth develops on leaf surfaces and may lead to yellowing and premature leaf decline.",
+      "management": "Improve airflow and reduce plant stress; use resistant varieties where available and locally approved fungicides when needed.",
+      "prevention": "Choose resistant cultivars, maintain airflow and scout regularly.",
+      "severity": "Moderate",
+      "sources": [
+        "https://extension.psu.edu/insects-pests-and-diseases/pest-disease-and-weed-identification/plant-disease-identification-and-control"
+      ]
+    },
+    "Strawberry___healthy": {
+      "crop": "Strawberry",
+      "disease": "Healthy",
+      "cause": "None detected",
+      "symptoms": "No characteristic disease symptoms detected by the classifier.",
+      "management": "No disease treatment is indicated from this classification alone; continue routine scouting.",
+      "prevention": "Use clean planting material, good drainage, sanitation and regular scouting.",
+      "severity": "None",
+      "sources": [
+        "Penn State Extension — Plant Diseases and Control"
+      ]
+    },
+    "Strawberry___Leaf_scorch": {
+      "crop": "Strawberry",
+      "disease": "Leaf scorch",
+      "cause": "Fungal leaf-spot disease (Diplocarpon-type leaf scorch)",
+      "symptoms": "Small purple to reddish leaf spots enlarge and can cause scorched-looking foliage.",
+      "management": "Remove badly affected foliage when appropriate, improve airflow and follow local fungicide guidance if disease pressure warrants.",
+      "prevention": "Use clean planting material, maintain airflow, avoid prolonged leaf wetness and remove infected debris.",
+      "severity": "Moderate",
+      "sources": [
+        "https://extension.psu.edu/insects-pests-and-diseases/pest-disease-and-weed-identification/plant-disease-identification-and-control"
+      ]
+    },
+    "Tomato___Bacterial_spot": {
+      "crop": "Tomato",
+      "disease": "Bacterial spot",
+      "cause": "Bacterium (Xanthomonas species complex)",
+      "symptoms": "Water-soaked spots develop on leaves and may turn dark; fruit can develop raised or sunken scabby spots.",
+      "management": "Use disease-free seed/transplants, avoid overhead irrigation, rotate crops and follow locally approved bactericide guidance.",
+      "prevention": "Use pathogen-free seed/transplants, sanitation, rotation and avoid handling wet plants.",
+      "severity": "Moderate",
+      "sources": [
+        "https://extension.psu.edu/insects-pests-and-diseases/pest-disease-and-weed-identification/plant-disease-identification-and-control",
+        "https://ipm.ucanr.edu/agriculture/tomato/bacterial-spot/"
+      ]
+    },
+    "Tomato___Early_blight": {
+      "crop": "Tomato",
+      "disease": "Early blight",
+      "cause": "Fungus (Alternaria species)",
+      "symptoms": "Dark circular leaf lesions often show concentric rings; older leaves are commonly affected first.",
+      "management": "Remove affected lower leaves without excessive defoliation, keep foliage dry, improve airflow, rotate crops and use locally approved fungicides when warranted.",
+      "prevention": "Use pathogen-free seed, crop rotation, sanitation, good airflow and regular scouting.",
+      "severity": "Moderate",
+      "sources": [
+        "https://extension.psu.edu/insects-pests-and-diseases/pest-disease-and-weed-identification/plant-disease-identification-and-control",
+        "https://ipm.ucanr.edu/agriculture/tomato/early-blight/",
+        "https://extension.umn.edu/agriculture/specialty-crops/vegetable-farming/disease-management/early-blight-in-tomato-and-potato"
+      ]
+    },
+    "Tomato___healthy": {
+      "crop": "Tomato",
+      "disease": "Healthy",
+      "cause": "None detected",
+      "symptoms": "No characteristic disease symptoms detected by the classifier.",
+      "management": "No disease treatment is indicated from this classification alone; continue routine scouting.",
+      "prevention": "Maintain balanced fertility, irrigation, sanitation and regular scouting.",
+      "severity": "None",
+      "sources": [
+        "Penn State Extension — Plant Diseases and Control"
+      ]
+    },
+    "Tomato___Late_blight": {
+      "crop": "Tomato",
+      "disease": "Late blight",
+      "cause": "Oomycete (Phytophthora infestans)",
+      "symptoms": "Water-soaked dark lesions can expand rapidly, especially during cool, wet conditions.",
+      "management": "Treat as urgent after confirmation; remove infected material and follow local late-blight forecasting and approved fungicide programs.",
+      "prevention": "Use healthy transplants, resistant/tolerant varieties where available, sanitation and disease forecasting.",
+      "severity": "High",
+      "sources": [
+        "https://extension.psu.edu/insects-pests-and-diseases/pest-disease-and-weed-identification/plant-disease-identification-and-control"
+      ]
+    },
+    "Tomato___Leaf_Mold": {
+      "crop": "Tomato",
+      "disease": "Leaf mold",
+      "cause": "Fungus (Passalora fulva)",
+      "symptoms": "Pale yellow upper-leaf spots with olive-green to brown fungal growth commonly on lower leaf surfaces.",
+      "management": "Improve greenhouse/field ventilation and reduce leaf wetness; remove infected leaves and use locally approved fungicides if needed.",
+      "prevention": "Use resistant varieties where available, sanitation, airflow and moisture management.",
+      "severity": "Moderate",
+      "sources": [
+        "https://extension.psu.edu/insects-pests-and-diseases/pest-disease-and-weed-identification/plant-disease-identification-and-control"
+      ]
+    },
+    "Tomato___Septoria_leaf_spot": {
+      "crop": "Tomato",
+      "disease": "Septoria leaf spot",
+      "cause": "Fungus (Septoria lycopersici)",
+      "symptoms": "Numerous small circular leaf spots, often with dark margins and pale centers.",
+      "management": "Remove infected lower leaves and debris, avoid overhead irrigation, rotate crops and use locally approved fungicides when warranted.",
+      "prevention": "Sanitation, crop rotation, good airflow and keeping foliage dry reduce risk.",
+      "severity": "Moderate",
+      "sources": [
+        "https://extension.psu.edu/insects-pests-and-diseases/pest-disease-and-weed-identification/plant-disease-identification-and-control"
+      ]
+    },
+    "Tomato___Spider_mites Two-spotted_spider_mite": {
+      "crop": "Tomato",
+      "disease": "Two-spotted spider mite",
+      "cause": "Mite (Tetranychus urticae)",
+      "symptoms": "Fine stippling/yellowing, webbing in heavier infestations, and leaf decline.",
+      "management": "Confirm mites before treatment; reduce plant stress, preserve beneficial predators, and use locally approved miticides only when thresholds justify treatment.",
+      "prevention": "Avoid severe water stress, scout leaf undersides and conserve beneficial predatory mites/insects.",
+      "severity": "Moderate",
+      "sources": [
+        "https://extension.psu.edu/insects-pests-and-diseases/pest-disease-and-weed-identification/plant-disease-identification-and-control"
+      ]
+    },
+    "Tomato___Target_Spot": {
+      "crop": "Tomato",
+      "disease": "Target spot",
+      "cause": "Fungus (Corynespora cassiicola)",
+      "symptoms": "Brown circular leaf lesions may develop concentric target-like rings; fruit lesions can occur.",
+      "management": "Remove infected debris, improve airflow, avoid prolonged leaf wetness and use locally approved fungicides when warranted.",
+      "prevention": "Sanitation, crop rotation, airflow and regular scouting reduce disease pressure.",
+      "severity": "Moderate",
+      "sources": [
+        "https://extension.psu.edu/insects-pests-and-diseases/pest-disease-and-weed-identification/plant-disease-identification-and-control"
+      ]
+    },
+    "Tomato___Tomato_mosaic_virus": {
+      "crop": "Tomato",
+      "disease": "Tomato mosaic virus",
+      "cause": "Plant virus",
+      "symptoms": "Mosaic or mottled light/dark green leaf patterns, distortion and variable growth reduction.",
+      "management": "There is no curative pesticide for an infected plant; remove confirmed infected plants and sanitize hands, tools and equipment to limit spread.",
+      "prevention": "Use clean seed/transplants, control contamination, sanitize tools and avoid handling plants when unnecessary.",
+      "severity": "High",
+      "sources": [
+        "https://extension.psu.edu/insects-pests-and-diseases/pest-disease-and-weed-identification/plant-disease-identification-and-control"
+      ]
+    },
+    "Tomato___Tomato_Yellow_Leaf_Curl_Virus": {
+      "crop": "Tomato",
+      "disease": "Tomato yellow leaf curl virus",
+      "cause": "Plant virus; commonly spread by whiteflies",
+      "symptoms": "Leaf curling, yellowing, stunting and reduced fruit set can occur.",
+      "management": "There is no curative treatment for an infected plant; confirm diagnosis and manage whitefly vectors according to local IPM guidance.",
+      "prevention": "Use resistant varieties where available, clean transplants and integrated whitefly management.",
+      "severity": "High",
+      "sources": [
+        "https://extension.psu.edu/insects-pests-and-diseases/pest-disease-and-weed-identification/plant-disease-identification-and-control"
+      ]
+    }
+  }
+}
