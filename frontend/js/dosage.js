@@ -5,8 +5,23 @@
 function getDosageSpecs(conditionName) {
     const name = (conditionName || '').toLowerCase();
 
+    // 1. Healthy condition bypass — Do not prescribe synthetic chemicals to healthy crops
+    if (name.includes('healthy')) {
+        return {
+            is_healthy: true,
+            chemical_name: 'None required (Plant is healthy)',
+            chemical_rate_per_litre: 0,
+            chemical_unit: 'g',
+            organic_name: 'Optional Organic Bio-Stimulant / Jeevamrit',
+            organic_rate_per_litre: 2.0,
+            organic_unit: 'ml',
+            litres_per_acre: 100
+        };
+    }
+
     if (name.includes('blight') || name.includes('black rot') || name.includes('scab')) {
         return {
+            is_healthy: false,
             chemical_name: 'Mancozeb 75% WP or Copper Oxychloride',
             chemical_rate_per_litre: 2.5, // grams/litre
             chemical_unit: 'g',
@@ -17,6 +32,7 @@ function getDosageSpecs(conditionName) {
         };
     } else if (name.includes('bacterial') || name.includes('spot')) {
         return {
+            is_healthy: false,
             chemical_name: 'Copper Oxychloride 50% WP + Streptocycline',
             chemical_rate_per_litre: 2.5,
             chemical_unit: 'g',
@@ -27,6 +43,7 @@ function getDosageSpecs(conditionName) {
         };
     } else if (name.includes('rust') || name.includes('mildew') || name.includes('mould')) {
         return {
+            is_healthy: false,
             chemical_name: 'Hexaconazole 5% EC or Wettable Sulphur',
             chemical_rate_per_litre: 2.0,
             chemical_unit: 'ml',
@@ -37,6 +54,7 @@ function getDosageSpecs(conditionName) {
         };
     } else {
         return {
+            is_healthy: false,
             chemical_name: 'Broad-Spectrum Protective Fungicide',
             chemical_rate_per_litre: 2.0,
             chemical_unit: 'g',
@@ -55,9 +73,14 @@ function updateDosageCalculations() {
 
     if (!areaInput || !unitSelect || !tankSelect) return;
 
-    let area = parseFloat(areaInput.value) || 1.0;
+    // Guard against negative or zero area
+    let rawArea = parseFloat(areaInput.value);
+    let area = (!isNaN(rawArea) && rawArea > 0) ? rawArea : 1.0;
     const unit = unitSelect.value;
-    const tankLiters = parseFloat(tankSelect.value) || 15;
+    
+    // Guard against zero or negative tank capacity (prevents division by zero / NaN)
+    let rawTank = parseFloat(tankSelect.value);
+    const tankLiters = (!isNaN(rawTank) && rawTank > 0) ? rawTank : 15;
 
     // Convert Bigha to Acres if selected (1 Acre approx 2.5 Bigha)
     let areaInAcres = unit === 'bigha' ? (area / 2.5) : area;
@@ -78,10 +101,18 @@ function updateDosageCalculations() {
 
     // Update UI elements
     const chemPerTankEl = document.getElementById('dosageChemPerTank');
-    if (chemPerTankEl) chemPerTankEl.textContent = `${chemPerTank} ${specs.chemical_unit}`;
+    if (chemPerTankEl) {
+        chemPerTankEl.textContent = specs.is_healthy 
+            ? '0 g (None needed)' 
+            : `${chemPerTank} ${specs.chemical_unit}`;
+    }
 
     const totalChemEl = document.getElementById('dosageTotalChem');
-    if (totalChemEl) totalChemEl.textContent = `${totalChem} ${specs.chemical_unit} (${refills} tank refills)`;
+    if (totalChemEl) {
+        totalChemEl.textContent = specs.is_healthy 
+            ? '0 g (Plant is healthy)' 
+            : `${totalChem} ${specs.chemical_unit} (${refills} tank refills)`;
+    }
 
     const orgPerTankEl = document.getElementById('dosageOrgPerTank');
     if (orgPerTankEl) orgPerTankEl.textContent = `${orgPerTank} ${specs.organic_unit}`;

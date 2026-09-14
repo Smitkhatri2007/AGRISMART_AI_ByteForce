@@ -267,7 +267,7 @@ async function handleCalculateIrrigation() {
         if (resultBox) {
             resultBox.style.display = 'block';
             document.getElementById('irrResultTitle').textContent = plan.title;
-            document.getElementById('irrResultBadge').textContent = plan.action.replace('_', ' ');
+            document.getElementById('irrResultBadge').textContent = (plan.action || '').replace(/_/g, ' ');
             document.getElementById('irrResultBadge').className = `status-pill pill-${plan.badge_color || 'green'}`;
             document.getElementById('irrResultVolume').textContent = plan.recommended_volume_liters_m2 > 0 
                 ? `${plan.recommended_volume_liters_m2} L/m² (~${plan.drip_runtime_minutes} mins drip)` 

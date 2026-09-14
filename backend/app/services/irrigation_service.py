@@ -75,6 +75,12 @@ class IrrigationService:
         lat: Optional[float] = None,
         lon: Optional[float] = None
     ) -> Dict[str, Any]:
+        # Clamp soil moisture to valid percentage
+        try:
+            soil_moisture_pct = max(0.0, min(100.0, float(soil_moisture_pct)))
+        except (ValueError, TypeError):
+            soil_moisture_pct = 50.0
+
         # Normalize crop name
         crop_clean = crop.replace("Pepper,_bell", "Bell Pepper").replace("Corn_(maize)", "Corn").strip()
         matched_crop = next((c for c in CROP_IRRIGATION_PROFILES.keys() if c.lower() in crop_clean.lower()), "Tomato")
@@ -107,29 +113,46 @@ class IrrigationService:
             prob_24h = 0
             forecast_summary = "Forecast data unavailable; proceeding on soil metrics."
 
+        # Severe drought check: near permanent wilting point (<= 60% of critical threshold)
+        is_severe_drought = soil_moisture_pct <= (critical_moisture * 0.6)
+
         # ── Decision Tree ──
         # Scenario A: Rain is arriving soon
         if delay_from_weather or (rain_24h_mm >= 5.0 and prob_24h >= 40):
-            action = "DELAY_IRRIGATION"
-            badge_color = "amber"
-            title = "Delay Irrigation — Rain Expected"
-            urgency = "Low"
-            volume_liters_m2 = 0.0
-            drip_minutes = 0
-            explanation = (
-                f"Natural precipitation ({rain_24h_mm:.1f} mm, {prob_24h}% chance) will replenish soil moisture. "
-                f"Irrigating now would risk oversaturating {matched_crop} root zone and causing root rot."
-            )
+            if is_severe_drought:
+                # Emergency light cycle to sustain root viability until precipitation arrives
+                action = "EMERGENCY_SHORT_CYCLE"
+                badge_color = "amber"
+                title = "Emergency Short Cycle — Rain Approaching"
+                urgency = "High"
+                volume_liters_m2 = 2.5
+                drip_minutes = int(round((volume_liters_m2 / 4.0) * 60))
+                explanation = (
+                    f"Severe soil depletion ({soil_moisture_pct:.0f}%) is near permanent wilting point for {matched_crop}. "
+                    f"Although rain ({rain_24h_mm:.1f} mm, {prob_24h}% chance) is forecast, apply a brief emergency cycle "
+                    f"of {volume_liters_m2} L/m² ({drip_minutes} mins drip) immediately to prevent irreversible plant collapse before precipitation begins."
+                )
+            else:
+                action = "DELAY_IRRIGATION"
+                badge_color = "amber"
+                title = "Delay Irrigation — Rain Expected"
+                urgency = "Low"
+                volume_liters_m2 = 0.0
+                drip_minutes = 0
+                explanation = (
+                    f"Natural precipitation ({rain_24h_mm:.1f} mm, {prob_24h}% chance) will replenish soil moisture. "
+                    f"Irrigating now would risk oversaturating {matched_crop} root zone and causing root rot."
+                )
 
         # Scenario B: Soil Moisture is below critical threshold
         elif soil_moisture_pct < critical_moisture:
             action = "IRRIGATE_NOW"
             badge_color = "red"
             title = "Irrigation Required Immediately"
-            urgency = "High" if stage_clean in ["Flowering", "Fruiting"] else "Moderate"
+            urgency = "High" if stage_clean in ["Flowering", "Fruiting"] or is_severe_drought else "Moderate"
             
             # Water deficit calculation in mm (1 mm = 1 Liter / m²)
-            moisture_deficit_pct = max(0, optimal_moisture - soil_moisture_pct)
+            moisture_deficit_pct = max(0.0, optimal_moisture - soil_moisture_pct)
             # Factor soil retention and crop daily demand
             volume_liters_m2 = round((moisture_deficit_pct / 10.0) * water_demand_mm * 0.15 * soil_meta["retention"], 1)
             volume_liters_m2 = max(3.0, min(8.5, volume_liters_m2))

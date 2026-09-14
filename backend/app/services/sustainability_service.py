@@ -26,19 +26,27 @@ def evaluate_sustainability(
     Computes indicative farm sustainability score, water saved in liters,
     and chemical reduction percentage with actionable improvements.
     """
-    sev = severity.lower()
+    try:
+        plot_acres = max(0.05, float(plot_acres))
+    except (ValueError, TypeError):
+        plot_acres = 1.0
+
+    sev = (severity or "healthy").lower().strip()
 
     # 1. Health Index (H: 0 - 100)
     if sev in ["none", "healthy"]:
         h = 100
         health_note = "Crop foliage is clean and photosynthetically optimal."
-    elif sev == "moderate":
+    elif sev in ["low"]:
+        h = 90
+        health_note = "Minimal disease presence detected; plant retains full photosynthetic vigor."
+    elif sev in ["medium", "moderate"]:
         h = 80
         health_note = "Early localized symptoms detected; manageable without systemic crop loss."
     elif sev == "high":
         h = 55
         health_note = "Widespread infection requires urgent biocontrol containment."
-    else:  # critical
+    else:  # critical / severe
         h = 30
         health_note = "Severe canopy necrosis; immediate IPM intervention required."
 

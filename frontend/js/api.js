@@ -711,8 +711,31 @@ async function fetchCropRecommendations(payload) {
 
     // Client Fallback (ICAR Rule Match)
     const soil = (payload.soil_type || 'Loamy').toLowerCase();
-    const ph = payload.ph || 6.5;
+    const ph = parseFloat(payload.ph || 6.5);
     const season = payload.season || 'Kharif';
+
+    if (ph < 4.0 || ph > 9.5) {
+        const isAcid = ph < 4.0;
+        return {
+            status: "warning",
+            data_source: "ICAR & FAO Agro-Ecological Standards (Offline Mode)",
+            input_parameters: payload,
+            recommendations: [
+                {
+                    crop: isAcid ? "Soil Conditioning Required (Acidic)" : "Soil Conditioning Required (Alkaline)",
+                    suitability_pct: 0,
+                    duration: "Reclamation phase",
+                    water_requirement_mm: 0,
+                    optimal_ph_range: "6.0 - 7.5",
+                    season: season,
+                    rotation_benefit: isAcid ? "Liming neutralizes toxic aluminum ions." : "Gypsum application leaches excessive sodium ions.",
+                    primary_rationale: isAcid 
+                        ? `Extreme soil acidity (pH ${ph.toFixed(1)} < 4.0) inhibits root development and nutrient uptake. Apply agricultural lime (CaCO3) before planting.`
+                        : `Extreme soil alkalinity (pH ${ph.toFixed(1)} > 9.5) causes severe sodicity and micronutrient lockup. Apply agricultural gypsum (CaSO4) before planting.`
+                }
+            ]
+        };
+    }
 
     let recommendations = [];
     if (season === 'Rabi') {
@@ -852,7 +875,20 @@ async function fetchSustainabilityScore(payload) {
 
     // Client Formula Fallback
     const sev = (payload.severity || 'moderate').toLowerCase();
-    const h = sev === 'healthy' || sev === 'none' ? 100 : (sev === 'moderate' ? 80 : (sev === 'high' ? 55 : 30));
+    let h = 80;
+    if (sev === 'healthy' || sev === 'none') {
+        h = 100;
+    } else if (sev === 'low') {
+        h = 90;
+    } else if (sev === 'moderate' || sev === 'medium') {
+        h = 80;
+    } else if (sev === 'high') {
+        h = 55;
+    } else {
+        h = 30; // critical
+    }
+
+    const acres = Math.max(0.05, parseFloat(payload.plot_acres) || 1.0);
     const w = payload.irrigation_delayed_by_rain ? 95 : 75;
     const o = payload.organic_chosen ? 100 : 50;
     const p_chem = payload.chemical_used ? 15 : 0;
@@ -867,7 +903,7 @@ async function fetchSustainabilityScore(payload) {
             water_efficiency_index: w,
             organic_stewardship_index: o,
             chemical_penalty: p_chem,
-            water_saved_liters: payload.irrigation_delayed_by_rain ? (payload.plot_acres * 24500) : 0,
+            water_saved_liters: payload.irrigation_delayed_by_rain ? Math.round(acres * 24500) : 0,
             chemical_runoff_reduction_pct: payload.chemical_used ? 35 : 100
         },
         notes: {
@@ -1544,12 +1580,35 @@ function runOfflinePrediction(file, lang = 'en') {
  * Intelligent agricultural advisor fallback when LLM cloud endpoint is cold-starting.
  */
 function generateOfflineChatReply(message, diseaseName, crop, history, lang = 'en') {
-    const q = (message || '').toLowerCase();
-    const c = crop || 'Crop';
-    const d = diseaseName || 'Crop Health';
+    const q = (message || '').toLowerCase().trim();
+    const c = crop && !['none', 'field crops', 'unknown'].includes(crop.toLowerCase()) ? crop : 'your crop';
+    const hasDiag = diseaseName && !['none', 'general farm health', 'unknown'].includes(diseaseName.toLowerCase());
+    const d = hasDiag ? diseaseName : null;
+    const isHi = lang === 'hi';
     let reply = '';
 
-    if (q.includes('weather') || q.includes('rain') || q.includes('wind') || q.includes('spray') || q.includes('मौसम') || q.includes('बारिश')) {
+    // 1. Greetings & Bot Identity
+    if (/^(hi|hello|hey|namaste|namaskar|kem cho|who are you|what can you do|help|नमस्ते|हेलो|हाय)/i.test(q) || q === 'hi' || q === 'hello') {
+        if (isHi) {
+            reply = `### 🌿 नमस्ते! मैं एग्रीस्मार्ट एआई (AgriBot) हूँ।\n\n` +
+                `मैं आपका डिजिटल कृषि सलाहकार हूँ। मैं निम्नलिखित में आपकी सहायता कर सकता हूँ:\n\n` +
+                `1. **रोग निदान व उपचार**: अपनी पत्ती की फोटो अपलोड करें और तुरंत समाधान पाएं।\n` +
+                `2. **सटीक छिड़काव खुराक**: 15L स्प्रेयर टैंक के लिए सही दवा व पानी का अनुपात।\n` +
+                `3. **मौसम व स्प्रे विंडो**: हवा और बारिश के आधार पर छिड़काव का सही समय।\n` +
+                `4. **स्मार्ट ड्रिप सिंचाई**: मिट्टी की नमी के अनुसार पानी की आवश्यकता।\n` +
+                `5. **फसल चयन**: आपकी मिट्टी और मौसम के लिए सबसे उपयुक्त फसलें।\n\n` +
+                `आप मुझसे खेती से जुड़ा कोई भी सवाल पूछ सकते हैं!`;
+        } else {
+            reply = `### 🌿 Hello! I am AgriBot AI, your Smart Agricultural Assistant.\n\n` +
+                `I'm here to help you maximize crop yields, protect plant health, and manage farm resources effectively. Here is what I can do for you:\n\n` +
+                `1. **Disease Diagnosis & Cure**: Upload a leaf image on the dashboard for instant disease identification and recovery plans.\n` +
+                `2. **Precision Spray Calculations**: Calculate exact knapsack tank dilutions and milliliters per acre to avoid chemical burn.\n` +
+                `3. **Weather-Optimized Spraying**: Check wind drift risks and optimal temperature windows before applying treatments.\n` +
+                `4. **Smart Irrigation Scheduling**: Calculate exact root-zone water demands based on FAO-56 standards.\n` +
+                `5. **Crop Rotation & Soil Selection**: Discover ideal crops for your soil texture and pH.\n\n` +
+                `How can I assist your farm today? Feel free to ask any farming or crop care question!`;
+        }
+    } else if (q.includes('weather') || q.includes('rain') || q.includes('wind') || q.includes('मौसम') || q.includes('बारिश')) {
         reply = `### 🌦️ Weather & Spray Window Advisory\n\n` +
             `* **Wind Conditions:** Only spray when wind speeds are below **15 km/h**. High wind causes chemical drift onto non-target crops and wastes 40%+ of your active ingredients.\n` +
             `* **Rain Outlook:** Ensure there is no precipitation forecast for at least **4 to 6 hours** post-application so systemic or contact fungicides adhere firmly to the cuticle.\n` +
@@ -1586,23 +1645,26 @@ function generateOfflineChatReply(message, diseaseName, crop, history, lang = 'e
             `* **⏱️ Recovery Expectation:** Visible arrest of necrotic margins within 5 to 7 days if applied promptly.
 ` +
             `* **Cultural Action:** Prune diseased lower leaves and ensure good airflow across the plant canopy.`;
+    } else if (q.includes('soil') || q.includes('fertilizer') || q.includes('npk') || q.includes('urea') || q.includes('compost') || q.includes('manure') || q.includes('मिट्टी') || q.includes('खाद')) {
+        reply = `### 🌾 Soil Fertility & Nutrient Management\n\n` +
+            `* **Organic Conditioning:** Incorporate 4–5 tonnes of well-rotted FYM or 2 tonnes of vermicompost per acre 3 weeks before sowing.\n` +
+            `* **Balanced NPK Nutrition:** Maintain a balanced 4:2:1 NPK ratio based on soil testing. Avoid excessive urea which creates soft, disease-prone foliage.\n` +
+            `* **Soil pH Management:** Ideal pH for most crops is 6.0–7.2. Apply agricultural lime for acidic soils (< 5.5) or gypsum for alkaline/sodic soils (> 8.2).`;
+    } else if (q.includes('irrigation') || q.includes('water') || q.includes('drip') || q.includes('moisture') || q.includes('सिंचाई') || q.includes('पानी')) {
+        reply = `### 💧 Smart Irrigation & Water Conservation\n\n` +
+            `* **Drip Precision:** Drip lines conserve 40–60% water compared to flooding and keep foliage dry, cutting fungal infection rates.\n` +
+            `* **Watering Schedule:** Irrigate early in the morning so root zones absorb moisture before peak midday heat.\n` +
+            `* **Rain Forecast Interlock:** If >= 5mm rain is expected within 24–48 hours, postpone irrigation to prevent root rot and nutrient runoff.`;
     } else {
-        reply = `Hello! I am **AgriBot AI**, your smart farming assistant. Regarding **${d}** on your **${c}**:
-
-` +
-            `* **Immediate Action:** Remove affected foliage and apply the recommended organic/chemical treatment.
-` +
-            `* **Irrigation:** Maintain uniform soil moisture using drip lines; avoid wetting leaves.
-` +
-            `* **Ask me anytime about:**
-` +
-            `  - Exact tank dilution & knapsack dosage per acre
-` +
-            `  - How to stop disease spread to neighboring rows
-` +
-            `  - Whether fruits are safe to harvest
-` +
-            `  - Best weather window for chemical spraying`;
+        reply = `### 🌿 AgriSmart AI Agricultural Guidance\n\n` +
+            (d ? `Regarding **${d}** on your **${c}**:\n\n` : `Here to assist with your farm management and crop care:\n\n`) +
+            `* **Immediate Observation:** Inspect foliage undersides for early powdery spots or water-soaked lesions.\n` +
+            `* **Irrigation Tip:** Maintain uniform soil moisture using drip lines; avoid wetting leaves during evening hours.\n` +
+            `* **Ask me anytime about:**\n` +
+            `  - Exact knapsack spray dilution & dosages per acre\n` +
+            `  - How to stop disease spread to neighboring rows\n` +
+            `  - Optimal weather windows for chemical or organic spraying\n` +
+            `  - Crop recommendations and soil health management`;
     }
 
     const updatedHistory = (history || []).concat([
