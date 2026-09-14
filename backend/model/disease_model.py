@@ -348,18 +348,20 @@ class DiseaseDetectionModel:
             ])
 
             # ── TTA transforms: 5 crops for test-time augmentation ──
-            self.tta_transform = transforms.Compose([
-                transforms.Resize(int(img_size * 1.14)),
-                transforms.FiveCrop(img_size),             # returns a tuple of 5 PIL images
-                transforms.Lambda(
-                    lambda crops: torch.stack([
-                        transforms.Compose([
-                            transforms.ToTensor(),
-                            transforms.Normalize(mean=mean, std=std),
-                        ])(c) for c in crops
-                    ])
-                ),
-            ])
+            # Disabled by default: FiveCrop often captures pure background in the corners
+            # of real-world user photos, which ruins the prediction when averaged.
+            # self.tta_transform = transforms.Compose([
+            #     transforms.Resize(int(img_size * 1.14)),
+            #     transforms.FiveCrop(img_size),
+            #     transforms.Lambda(
+            #         lambda crops: torch.stack([
+            #             transforms.Compose([
+            #                 transforms.ToTensor(),
+            #                 transforms.Normalize(mean=mean, std=std),
+            #             ])(c) for c in crops
+            #         ])
+            #     ),
+            # ])
 
             logger.info(
                 f"✓ Loaded {self.model_type} | {len(self.idx_to_class)} classes "
