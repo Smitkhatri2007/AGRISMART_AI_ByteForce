@@ -558,5 +558,48 @@ CLASS_METADATA = {
     }
 }
 
-# The complete list of 38 PlantVillage classes across 14 crops
-ALL_CLASSES = list(CLASS_METADATA.keys())
+# The complete list of 38 PlantVillage classes in the EXACT order used during training.
+# This ordering mirrors the alphabetical PlantVillage dataset folder sort order, which
+# determines idx→class mapping inside the trained .pth checkpoint.
+# IMPORTANT: Do NOT change this order — it must match the checkpoint's class_names list.
+# Verified against: crop_disease_resnet18_best.pth (DenseNet-201, val_acc=99.97%, epoch=23)
+ALL_CLASSES = [
+    "Apple Scab",                        # [0]  Apple___Apple_scab
+    "Apple Black Rot",                   # [1]  Apple___Black_rot
+    "Apple Cedar Rust",                  # [2]  Apple___Cedar_apple_rust
+    "Apple healthy",                     # [3]  Apple___healthy
+    "Blueberry healthy",                 # [4]  Blueberry___healthy
+    "Cherry Powdery Mildew",             # [5]  Cherry_(including_sour)___Powdery_mildew
+    "Cherry healthy",                    # [6]  Cherry_(including_sour)___healthy
+    "Corn Grey Leaf Spot",               # [7]  Corn_(maize)___Cercospora_leaf_spot Gray_leaf_spot
+    "Corn Common Rust",                  # [8]  Corn_(maize)___Common_rust_
+    "Corn Northern Leaf Blight",         # [9]  Corn_(maize)___Northern_Leaf_Blight
+    "Corn healthy",                      # [10] Corn_(maize)___healthy
+    "Grape Black Rot",                   # [11] Grape___Black_rot
+    "Grape Black Measles (Esca)",        # [12] Grape___Esca_(Black_Measles)
+    "Grape Leaf Blight",                 # [13] Grape___Leaf_blight_(Isariopsis_Leaf_Spot)
+    "Grape healthy",                     # [14] Grape___healthy
+    "Orange Citrus Greening",            # [15] Orange___Haunglongbing_(Citrus_greening)
+    "Peach Bacterial Spot",              # [16] Peach___Bacterial_spot
+    "Peach healthy",                     # [17] Peach___healthy
+    "Bell Pepper Bacterial Spot",        # [18] Pepper,_bell___Bacterial_spot
+    "Bell Pepper healthy",               # [19] Pepper,_bell___healthy
+    "Potato Early Blight",               # [20] Potato___Early_blight
+    "Potato Late Blight",                # [21] Potato___Late_blight
+    "Potato healthy",                    # [22] Potato___healthy
+    "Raspberry healthy",                 # [23] Raspberry___healthy
+    "Soybean healthy",                   # [24] Soybean___healthy
+    "Squash Powdery Mildew",             # [25] Squash___Powdery_mildew
+    "Strawberry Leaf Scorch",            # [26] Strawberry___Leaf_scorch
+    "Strawberry healthy",                # [27] Strawberry___healthy
+    "Tomato Bacterial Spot",             # [28] Tomato___Bacterial_spot
+    "Tomato Early Blight",               # [29] Tomato___Early_blight
+    "Tomato Late Blight",                # [30] Tomato___Late_blight
+    "Tomato Leaf Mould",                 # [31] Tomato___Leaf_Mold
+    "Tomato Septoria Leaf Spot",         # [32] Tomato___Septoria_leaf_spot
+    "Tomato Two-Spotted Spider Mite",    # [33] Tomato___Spider_mites Two-spotted_spider_mite
+    "Tomato Target Spot",                # [34] Tomato___Target_Spot
+    "Tomato Yellow Leaf Curl Virus",     # [35] Tomato___Tomato_Yellow_Leaf_Curl_Virus
+    "Tomato Mosaic Virus",               # [36] Tomato___Tomato_mosaic_virus
+    "Tomato healthy",                    # [37] Tomato___healthy
+]

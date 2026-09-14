@@ -118,6 +118,9 @@ class DiseaseDetectionModel:
     LOW_CONFIDENCE_THRESHOLD = 0.50
 
     def __init__(self):
+        # NOTE: self.classes and self.idx_to_class are both overridden inside
+        # _load_real_weights() once the checkpoint is read. They are seeded
+        # from ALL_CLASSES here only as a safe fallback for mock/simulation mode.
         self.classes = ALL_CLASSES
         self.num_classes = len(self.classes)
         self.real_model = None
@@ -128,6 +131,12 @@ class DiseaseDetectionModel:
 
         if USE_REAL_DISEASE_MODEL:
             self._load_real_weights()
+            # ── CRITICAL: sync self.classes to the checkpoint's actual class order ──
+            # After loading, idx_to_class contains the ground-truth training order.
+            # Rebuild self.classes from it so every part of the codebase is consistent.
+            if self.real_model is not None and self.idx_to_class:
+                self.classes = [self.idx_to_class[i] for i in sorted(self.idx_to_class.keys())]
+                self.num_classes = len(self.classes)
 
     def _load_real_weights(self):
         """
@@ -234,8 +243,33 @@ class DiseaseDetectionModel:
             # ── Load checkpoint — Case A: Full training checkpoint dict ──
             if isinstance(ckpt, dict) and ("model_state" in ckpt or "ema_state" in ckpt):
                 cfg = ckpt.get("config", {})
-                backbone = cfg.get("backbone", "densenet201")
-                ckpt_classes = ckpt.get("class_names", self.classes)
+
+                # ALWAYS read backbone from the saved config — never assume a default.
+                # Assuming densenet201 when the model was trained as efficientnet_b4
+                # (or vice-versa) causes completely wrong weight shapes and random predictions.
+                backbone = cfg.get("backbone")
+                if not backbone:
+                    # Fallback: detect from weight key names if config is missing
+                    sample_keys = list((ckpt.get("ema_state") or ckpt.get("model_state", {})).keys())
+                    if any("denseblock" in k for k in sample_keys):
+                        backbone = "densenet201"
+                    elif any("features.0.0" in k for k in sample_keys):
+                        backbone = "efficientnet_b4"
+                    else:
+                        backbone = "resnet18"
+                    logger.warning(
+                        f"No 'backbone' in checkpoint config — auto-detected as '{backbone}' from weight keys."
+                    )
+
+                # ALWAYS read class_names from the checkpoint — this is the ground-truth
+                # training-time ordering. Using ALL_CLASSES from class_catalog.py can have
+                # a completely different sort order, causing every prediction to be wrong.
+                ckpt_classes = ckpt.get("class_names")
+                if not ckpt_classes:
+                    raise ValueError(
+                        "Checkpoint is missing 'class_names'. Cannot build idx→class mapping. "
+                        "Retrain the model with train_plant_disease.py which saves class_names."
+                    )
                 num_classes = len(ckpt_classes)
 
                 self.real_model = PlantDiseaseModel(backbone, num_classes, cfg)
@@ -245,7 +279,8 @@ class DiseaseDetectionModel:
                 clean_state = {k.replace("module.", ""): v for k, v in state_dict.items()}
                 self.real_model.load_state_dict(clean_state, strict=True)
 
-                # Build index → standardized class name mapping
+                # Build index → standardized class name mapping from the checkpoint's
+                # EXACT training-time class ordering (alphabetical PlantVillage sort).
                 raw_class_names = list(ckpt_classes)
                 self.idx_to_class = {
                     i: RAW_TO_STANDARD_MAP.get(cls, cls)
@@ -260,6 +295,12 @@ class DiseaseDetectionModel:
                 val_acc = ckpt.get("val_acc")
                 if val_acc:
                     logger.info(f"Checkpoint val_acc: {val_acc:.4%} @ epoch {ckpt.get('epoch', '?')}")
+
+                # Validation log: print first 5 class mappings so mismatches are caught early
+                logger.info(
+                    f"Class index mapping (first 5): "
+                    + ", ".join(f"{i}={self.idx_to_class[i]!r}" for i in range(min(5, num_classes)))
+                )
 
             # ── Case B: PlantDiseaseModel state dict with 'head.net' keys ──
             elif isinstance(ckpt, dict) and any("head.net" in k for k in (ckpt.get("model_state_dict", ckpt)).keys()):
@@ -283,13 +324,17 @@ class DiseaseDetectionModel:
                 logger.warning(f"Unrecognized checkpoint format in '{weights_path}'.")
                 return
 
-            # Override with class_to_idx if present (takes priority)
+            # Override with class_to_idx if present (takes priority over class_names)
             if isinstance(ckpt, dict) and "class_to_idx" in ckpt:
                 raw_idx = {v: k for k, v in ckpt["class_to_idx"].items()}
                 self.idx_to_class = {
                     i: RAW_TO_STANDARD_MAP.get(cls, cls)
                     for i, cls in raw_idx.items()
                 }
+                logger.info(
+                    f"Using class_to_idx from checkpoint. "
+                    f"First 5: " + ", ".join(f"{i}={self.idx_to_class[i]!r}" for i in range(min(5, len(self.idx_to_class))))
+                )
 
             self.real_model.to(self.device)
             self.real_model.eval()
