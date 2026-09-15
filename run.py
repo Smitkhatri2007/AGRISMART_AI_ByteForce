@@ -14,6 +14,7 @@ import os
 import sys
 import subprocess
 import platform
+import shutil
 
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -56,12 +57,29 @@ def main():
     print(f"[INFO] OS: {os_name} ({platform.platform()})")
     print(f"[INFO] Python: {sys.version.split()[0]}")
 
-    # ── Step 1: Create venv ──────────────────────────────────────
+    # ── Step 1: Create / validate venv ───────────────────────────
+    def is_venv_healthy():
+        """Return True only if the venv exists AND pip is functional."""
+        pip_path = get_venv_pip()
+        if not os.path.isfile(pip_path):
+            return False
+        result = subprocess.run(
+            [pip_path, "--version"],
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+        )
+        return result.returncode == 0
+
     if not os.path.isdir(VENV_DIR):
         print("[INFO] Creating virtual environment...")
         run([sys.executable, "-m", "venv", VENV_DIR])
+    elif not is_venv_healthy():
+        print("[WARN] Virtual environment is broken or machine-specific (e.g. cloned from another PC).")
+        print("[INFO] Deleting old venv and creating a fresh one...")
+        shutil.rmtree(VENV_DIR)
+        run([sys.executable, "-m", "venv", VENV_DIR])
     else:
-        print("[INFO] Virtual environment found.")
+        print("[INFO] Virtual environment found and healthy.")
 
     venv_python = get_venv_python()
     venv_pip = get_venv_pip()
