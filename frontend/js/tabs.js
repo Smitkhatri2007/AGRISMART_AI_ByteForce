@@ -30,6 +30,14 @@ function switchTab(target) {
         section.classList.add('active');
         // Scroll smoothly to top of the view
         window.scrollTo({ top: 0, behavior: 'smooth' });
+
+        // Ensure weather advisory data is loaded if switching to advisory tab
+        if (target === 'advisory' && typeof loadWeatherAdvisory === 'function') {
+            const tempEl = document.getElementById('weatherCurrentTemp');
+            if (!tempEl || tempEl.textContent.includes('--')) {
+                loadWeatherAdvisory();
+            }
+        }
     }
 }
 

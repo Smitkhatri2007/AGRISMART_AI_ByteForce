@@ -23,6 +23,7 @@ function generateShareText() {
         return "AgriSmart AI — Intelligent Crop Disease Diagnostics and Advisory for Farmers.";
     }
     const d = latestDiagnosisForShare;
+    const isHealthy = (d.severity || '').toLowerCase() === 'none' || (d.condition || '').toLowerCase().includes('healthy');
     const lines = [
         `🌱 *AgriSmart AI — Field Diagnosis Card*`,
         `━━━━━━━━━━━━━━━━━━━━━━`,
@@ -30,13 +31,15 @@ function generateShareText() {
         `🌾 *Crop:* ${d.plant}`,
         `🦠 *Diagnosis:* ${d.condition}`,
         `🎯 *Confidence:* ${d.confidence}%`,
-        `⚠️ *Severity:* ${(d.severity || 'Moderate').toUpperCase()}`,
+        `⚠️ *Severity:* ${(d.severity || (isHealthy ? 'None' : 'Moderate')).toUpperCase()}`,
         `━━━━━━━━━━━━━━━━━━━━━━`,
-        `💊 *Recommended Treatment:*`,
-        d.cure_plan && d.cure_plan.organic_treatment 
-            ? `• Organic: ${d.cure_plan.organic_treatment.replace(/[*#]/g, '').substring(0, 120)}...`
-            : `• ${d.treatment.substring(0, 120)}...`,
-        d.cure_plan && d.cure_plan.chemical_treatment 
+        isHealthy ? `🌱 *Preventative Maintenance:*` : `💊 *Recommended Treatment:*`,
+        isHealthy
+            ? `• Crop foliage is clean and healthy. Maintain standard drip irrigation and balanced organic nourishment.`
+            : (d.cure_plan && d.cure_plan.organic_treatment 
+                ? `• Organic: ${d.cure_plan.organic_treatment.replace(/[*#]/g, '').substring(0, 120)}...`
+                : `• ${d.treatment ? d.treatment.substring(0, 120) : 'Apply recommended bio-protection.'}...`),
+        (!isHealthy && d.cure_plan && d.cure_plan.chemical_treatment)
             ? `• Chemical: ${d.cure_plan.chemical_treatment.replace(/[*#]/g, '').substring(0, 120)}...`
             : '',
         `━━━━━━━━━━━━━━━━━━━━━━`,

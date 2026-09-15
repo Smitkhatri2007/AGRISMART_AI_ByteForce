@@ -24,15 +24,16 @@ function renderQuickReplies() {
     const qrContainer = document.getElementById('quickReplies');
     if (!qrContainer) return;
     
-    // If no leaf scanned yet, show general farmer questions
+    // If no leaf scanned yet, show general agronomy & Web AI conversation chips
     if (!currentDiagnosisContext) {
         if (chatHistory.length > 0) {
             qrContainer.style.display = 'none';
             return;
         }
         const generalChips = {
-            'en': ['How to protect crops from blight?', 'Check safe spray weather', 'Best crops for loamy soil?'],
-            'hi': ['फसल को झुलसा रोग से कैसे बचाएं?', 'आज छिड़काव का सही मौसम क्या है?', 'दोमट मिट्टी के लिए सर्वोत्तम फसल?']
+            'en': ['🌱 Best crops for loamy soil', '🌦️ Today\'s safe spray weather', '💧 Drip irrigation guide', '🌿 How to make neem spray'],
+            'hi': ['🌱 दोमट मिट्टी के लिए सर्वोत्तम फसल', '🌦️ छिड़काव का सही मौसम', '💧 ड्रिप सिंचाई गाइड', '🌿 नीम का कीटनाशक कैसे बनाएं'],
+            'gu': ['🌱 ગોરાડુ જમીન માટે શ્રેષ્ઠ પાક', '🌦️ દવાનો છંટકાવ કરવાનો સમય', '💧 ટપક સિંચાઈ માર્ગદર્શિકા', '🌿 લીમડાનું તેલ કેવી રીતે બનાવવું']
         };
         const lang = document.getElementById('languageSelect') ? document.getElementById('languageSelect').value : 'en';
         const options = generalChips[lang] || generalChips['en'];
@@ -59,8 +60,9 @@ function renderQuickReplies() {
 
     const lang = document.getElementById('languageSelect') ? document.getElementById('languageSelect').value : 'en';
     const chips = {
-        'en': ['What is the exact dosage?', 'Can this spread?', 'Is the fruit safe to eat?'],
-        'hi': ['सटीक खुराक क्या है?', 'क्या यह फैल सकता है?', 'क्या फल खाने के लिए सुरक्षित है?']
+        'en': ['🎯 Exact knapsack spray dosage', '🛡️ How to stop disease spread', '🍎 Is the fruit safe to eat?', '💊 Step-by-step cure plan'],
+        'hi': ['🎯 स्प्रेयर के लिए सही खुराक', '🛡️ बीमारी का फैलाव कैसे रोकें?', '🍎 क्या फल खाने के लिए सुरक्षित है?', '💊 सम्पूर्ण उपचार योजना'],
+        'gu': ['🎯 સ્પ્રેયર માટે ચોક્કસ ડોઝ', '🛡️ રોગ ફેલાતો કેવી રીતે અટકાવવો?', '🍎 શું ફળ ખાવું સલામત છે?', '💊 સ્ટેપ-બાય-સ્ટેપ સારવાર']
     };
     
     const options = chips[lang] || chips['en'];
@@ -86,14 +88,19 @@ function closeChat() {
 }
 
 /**
- * Lightweight HTML sanitizer — strips script/iframe/event-handler attributes.
- * Avoids adding a DOMPurify CDN dependency.
+ * Hardened HTML sanitizer — strips scripts, iframes, objects, and both quoted
+ * and unquoted inline event handlers to prevent DOM XSS vulnerabilities.
  */
 function sanitizeHtml(html) {
-    return html
+    return (html || '')
         .replace(/<script[\s\S]*?<\/script>/gi, '')
         .replace(/<iframe[\s\S]*?>/gi, '')
-        .replace(/\s+on\w+\s*=\s*(["'])[^"']*\1/gi, '')
+        .replace(/<object[\s\S]*?>/gi, '')
+        .replace(/<embed[\s\S]*?>/gi, '')
+        .replace(/<meta[\s\S]*?>/gi, '')
+        .replace(/\s+on[a-z]+\s*=\s*("[^"]*"|'[^']*'|[^\s>]+)/gi, '')
+        .replace(/href\s*=\s*(["'])\s*javascript:[^"']*\1/gi, '')
+        .replace(/src\s*=\s*(["'])\s*javascript:[^"']*\1/gi, '')
         .replace(/javascript:/gi, '');
 }
 
