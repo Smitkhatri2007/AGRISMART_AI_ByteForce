@@ -264,7 +264,14 @@ class DiseaseDetectionModel:
                 # ALWAYS read class_names from the checkpoint — this is the ground-truth
                 # training-time ordering. Using ALL_CLASSES from class_catalog.py can have
                 # a completely different sort order, causing every prediction to be wrong.
-                ckpt_classes = ckpt.get("class_names")
+                json_path = os.path.join(os.path.dirname(__file__), "checkpoint_class_order.json")
+                if os.path.exists(json_path):
+                    import json
+                    with open(json_path, "r") as f:
+                        ckpt_classes = json.load(f).get("class_order")
+                else:
+                    ckpt_classes = ckpt.get("class_names")
+                    
                 if not ckpt_classes:
                     raise ValueError(
                         "Checkpoint is missing 'class_names'. Cannot build idx→class mapping. "
@@ -335,6 +342,20 @@ class DiseaseDetectionModel:
                     f"Using class_to_idx from checkpoint. "
                     f"First 5: " + ", ".join(f"{i}={self.idx_to_class[i]!r}" for i in range(min(5, len(self.idx_to_class))))
                 )
+
+            # Final override from checkpoint_class_order.json if present
+            json_path = os.path.join(os.path.dirname(__file__), "checkpoint_class_order.json")
+            if os.path.exists(json_path):
+                import json
+                with open(json_path, "r") as f:
+                    json_data = json.load(f)
+                    if "class_order" in json_data:
+                        raw_classes = json_data["class_order"]
+                        self.idx_to_class = {
+                            i: RAW_TO_STANDARD_MAP.get(cls, cls)
+                            for i, cls in enumerate(raw_classes)
+                        }
+                        logger.info(f"Using class order from checkpoint_class_order.json. Total classes: {len(self.idx_to_class)}")
 
             self.real_model.to(self.device)
             self.real_model.eval()
