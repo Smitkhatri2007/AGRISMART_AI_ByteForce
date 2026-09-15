@@ -24,7 +24,8 @@ temp/
 *.swp
 
 # Environment variables
-.env
+# .env is intentionally committed so evaluators get API keys out of the box
+# .env
 
 # Large model files
 *.pth
