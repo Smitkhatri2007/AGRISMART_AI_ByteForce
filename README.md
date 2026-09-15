@@ -14,7 +14,7 @@ AgriSmart AI is an end-to-end precision agritech platform combining edge-optimiz
 - **Model Weights**: ~295 MB checkpoint auto-downloads from Google Drive on first run if not present locally. See [Model Report](report/report.md) for full evaluation.
 
 ### 🤖 Module E & AgriBot: Conversational Web AI Agronomist
-- **Online Intelligence**: Powered by **Groq** (`llama-3.3-70b-versatile`) with sub-second inference speeds. Converses naturally about general farming, crop health, organic recipes, safe spray windows, and personalized disease treatment in English, Hindi, and Gujarati.
+- **Online Intelligence**: Powered by **Groq** (`openai/gpt-oss-120b`) with sub-second inference speeds. Converses naturally about general farming, crop health, organic recipes, safe spray windows, and personalized disease treatment in **7 regional languages**: English, Hindi, Marathi, Tamil, Telugu, Kannada, and Gujarati.
 - **Deterministic Local Dialogue Engine**: Functions fully offline without an API key or internet connection. Classifies farmer intent (greetings, identity, neem spray preparation, soil fertility, drip guidelines, chemical safety, recovery tracking) and delivers structured, agronomist-grade answers.
 - **Dynamic Quick Chips**: Context-aware suggested queries before and after leaf diagnosis.
 - **Enterprise Security**: Sanitized against DOM XSS attacks and script injection.
@@ -54,9 +54,57 @@ AgriSmart AI is an end-to-end precision agritech platform combining edge-optimiz
 ### 📲 Universal Multi-App Sharing
 - **Native Web Share API**: Shares formatted diagnosis cards, dosages, and irrigation plans directly to WhatsApp, Telegram, Gmail, SMS, or any native mobile/desktop app, with automatic clipboard copy fallback.
 
+### 📱 Progressive Web App (PWA)
+- **Offline-First**: Installable on Android, iOS, and Desktop via a Service Worker (`sw.js`) and Web App Manifest. Core UI and offline fallback engine remain fully functional without internet connectivity.
+
 ---
 
-## 2. Setup and Run Instructions
+## 2. Project Structure
+
+```
+AGRISMART_AI_ByteForce/
+├── run.py                        # Universal one-command launcher (Windows/Linux/macOS)
+├── predict.py                    # CLI prediction script (leaf image → class label)
+├── requirements.txt              # Root-level Python dependencies
+├── backend/
+│   ├── app/
+│   │   ├── main.py               # FastAPI entrypoint & frontend static mount
+│   │   ├── config.py             # Environment settings (Groq key, DB URL, etc.)
+│   │   ├── database.py           # SQLite / PostgreSQL setup via SQLAlchemy
+│   │   ├── routers/
+│   │   │   ├── core_disease.py   # /diagnose endpoint — leaf image upload & classification
+│   │   │   ├── chat.py           # /chat endpoint — AgriBot conversational AI
+│   │   │   └── advisory.py       # /advisory endpoint — crop, irrigation, weather, sustainability
+│   │   └── services/
+│   │       ├── gemini_service.py      # Groq LLM advisor (disease desc, cure plans, AgriBot)
+│   │       ├── disease_service.py     # DenseNet-201 inference pipeline
+│   │       ├── crop_recommendation_service.py  # Module A: ICAR crop recommender
+│   │       ├── irrigation_service.py  # Module B: FAO-56 irrigation advisor
+│   │       ├── weather_service.py     # Module C: Open-Meteo weather intelligence
+│   │       ├── sustainability_service.py       # Module D: Sustainability score engine
+│   │       └── agentic_service.py     # Module G: Autonomous agentic decision cycle
+│   ├── model/
+│   │   ├── disease_model.py           # DenseNet-201 + EMA model definition
+│   │   ├── class_catalog.py           # 38-class metadata, treatments, descriptions
+│   │   ├── download_weights.py        # Auto-downloads ~295 MB checkpoint on first run
+│   │   └── crop_disease_resnet18_best.pth  # Model checkpoint (DenseNet-201 with EMA)
+│   ├── requirements.txt               # Backend Python dependencies
+│   └── .env.example                   # Environment variable template
+├── frontend/
+│   ├── index.html                     # Single-page app (Vanilla HTML5/CSS3/ES6)
+│   ├── manifest.json                  # PWA manifest
+│   ├── sw.js                          # Service Worker for offline support
+│   ├── css/                           # Stylesheets
+│   └── js/                            # JavaScript modules
+├── model/                             # (Root-level model alias for CLI predict)
+├── report/
+│   └── report.md                      # Full model evaluation & confusion matrices
+└── .gitignore
+```
+
+---
+
+## 3. Setup and Run Instructions
 
 ### Prerequisites
 - Python 3.10+
@@ -100,7 +148,7 @@ AgriSmart AI is an end-to-end precision agritech platform combining edge-optimiz
 
 ---
 
-## 3. Running CLI Prediction (Section 4.1 Contract)
+## 4. Running CLI Prediction (Section 4.1 Contract)
 You can classify an image directly from the **repository root**:
 ```bash
 python predict.py --image path/to/leaf.jpg
@@ -117,13 +165,13 @@ label = predict("path/to/leaf.jpg")
 
 ---
 
-## 4. Dataset & License
+## 5. Dataset & License
 - **Dataset**: New Plant Diseases Dataset (Augmented), derived from PlantVillage and PlantDoc.
 - **License**: Open Source / Public Domain (Kaggle).
 
 ---
 
-## 5. Reported Metrics & Architecture
+## 6. Reported Metrics & Architecture
 - **Model Backbone**: DenseNet-201 with Exponential Moving Average (EMA) weights (decay=0.9995)
 - **Classifier Head**: Linear(1920→512) → BatchNorm → ReLU → Dropout(0.3) → Linear(512→38)
 - **Macro-F1**: 0.9577 | **Accuracy**: 95.76% on 10,861 validation images
@@ -134,7 +182,7 @@ label = predict("path/to/leaf.jpg")
 
 ---
 
-## 6. Demo Video
+## 7. Demo Video
 
 [![▶ Watch Demo Video](https://img.shields.io/badge/▶%20Watch%20Demo-Google%20Drive-blue?style=for-the-badge&logo=googledrive)](https://drive.google.com/file/d/1UA1qbzkrickx5rnltHN6aZJcC-VQREll/view?usp=drivesdk)
 
@@ -146,7 +194,7 @@ The demo shows:
 
 ---
 
-## 7. Originality Declaration & Third-Party Citations
+## 8. Originality Declaration & Third-Party Citations
 
 We declare that the AgriSmart AI system is our original work developed during the SIH 2026 hackathon window (September 10–15, 2026). The following third-party resources were used with proper attribution:
 
