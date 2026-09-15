@@ -37,7 +37,8 @@ class Settings:
     
     # Database URL: defaults to local SQLite for zero-setup execution
     # On Render, the managed PostgreSQL database populates DATABASE_URL automatically
-    _raw_db_url: str = os.getenv("DATABASE_URL", "sqlite:///./agrismart.db")
+    _default_db_path: str = os.path.join(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")), "agrismart.db").replace("\\", "/")
+    _raw_db_url: str = os.getenv("DATABASE_URL", f"sqlite:///{_default_db_path}")
     
     @property
     def DATABASE_URL(self) -> str:

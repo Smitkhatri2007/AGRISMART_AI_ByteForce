@@ -1,8 +1,0 @@
-# AgriSmart AI - Heavy Offline Model Training Requirements
-# Use on machines with GPU and >= 4GB RAM: pip install -r requirements-training.txt
--r requirements.txt
-
-torch
-torchvision
-scikit-learn
-matplotlib

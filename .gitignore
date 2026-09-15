@@ -25,7 +25,6 @@ temp/
 
 # Environment variables
 .env
-.env.exaample
 
 # Large model files
 *.pth

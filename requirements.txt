@@ -1,0 +1,8 @@
+# AgriSmart AI - Core Inference Requirements
+# Installs CPU-optimized PyTorch for fast local evaluation (<10 min setup)
+# Ref: SIH 2026 Problem Statement 1, Section 7.1 & 7.2
+--extra-index-url https://download.pytorch.org/whl/cpu
+torch>=2.0.0
+torchvision>=0.15.0
+pillow>=10.2.0
+numpy>=1.26.0

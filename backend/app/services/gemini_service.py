@@ -52,7 +52,7 @@ class GroqAdvisorService:
                     {"role": "user", "content": prompt}
                 ],
                 temperature=temperature,
-                max_completion_tokens=1000,
+                max_completion_tokens=2500,
                 top_p=1,
             )
             content = completion.choices[0].message.content
@@ -443,9 +443,11 @@ class GroqAdvisorService:
         system_context = (
             f"You are AgriBot, an empathetic, expert agricultural Web AI assistant built into AgriSmart AI. "
             f"{context_snippet} "
-            f"You can converse naturally, greet the farmer warmly, answer open-ended agricultural science questions, "
+            f"You can converse naturally, greet the farmer warmly, answer agricultural science questions, "
             f"and provide actionable plant protection and irrigation advice. "
-            f"Format your output cleanly using markdown headings and bullet points. "
+            f"Structure your response clearly using concise bullet points and short sections. "
+            f"Keep advice practical, focused, and directly actionable (around 300–450 words) so all points finish cleanly without getting cut off. "
+            f"Always complete every sentence and conclude all points thoroughly. "
             f"CRITICAL INSTRUCTION: You MUST respond in {full_lang}. Do not reply in English unless {full_lang} is English."
         )
 
@@ -466,7 +468,7 @@ class GroqAdvisorService:
                 model=self.model,
                 messages=messages,
                 temperature=0.6,
-                max_completion_tokens=700,
+                max_completion_tokens=3000,
                 top_p=1,
             )
             reply_text = completion.choices[0].message.content.strip()

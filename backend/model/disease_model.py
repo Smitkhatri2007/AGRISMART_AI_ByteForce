@@ -93,7 +93,19 @@ def resolve_weights_path() -> Optional[str]:
                     )
             except OSError:
                 pass
+
+    # Auto-download fallback if missing or LFS pointer
+    try:
+        from model.download_weights import ensure_weights
+        target = os.path.join(os.path.dirname(__file__), CHECKPOINT_FILENAME)
+        downloaded = ensure_weights(target)
+        if downloaded and os.path.isfile(downloaded) and os.path.getsize(downloaded) > 1_000_000:
+            return os.path.abspath(downloaded)
+    except Exception as e:
+        logger.warning(f"Auto-download check failed: {e}")
+
     return None
+
 
 
 class DiseaseDetectionModel:
