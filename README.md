@@ -136,11 +136,11 @@ label = predict("path/to/leaf.jpg")
 
 ## 6. Demo Video
 
-📹 **[3–5 Minute Demo Video](https://youtu.be/YOUR_VIDEO_LINK_HERE)** — *(Replace with your unlisted YouTube link)*
+[![▶ Watch Demo Video](https://img.shields.io/badge/▶%20Watch%20Demo-Google%20Drive-blue?style=for-the-badge&logo=googledrive)](https://drive.google.com/file/d/1UA1qbzkrickx5rnltHN6aZJcC-VQREll/view?usp=drivesdk)
 
 The demo shows:
 1. Uploading a new leaf image and receiving instant disease classification.
-2. Gemini Pro / Groq-powered disease description and cure plan generation.
+2. Groq-powered disease description and cure plan generation.
 3. Smart Advisory modules (Crop Recommendation, Irrigation, Weather, Sustainability).
 4. AgriBot conversational assistant in action.
 
